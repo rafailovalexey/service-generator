@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func GetLayerData(layer string, name string) []byte {
+func GetLayer(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := system.GetSeparator()
 
@@ -20,7 +20,7 @@ func GetLayerData(layer string, name string) []byte {
 	return data.Bytes()
 }
 
-func GetImplementationData(layer string, name string, module string, kind string) []byte {
+func GetImplementation(layer string, name string, module string, kind string) []byte {
 	data := bytes.Buffer{}
 	separator := system.GetSeparator()
 
@@ -50,7 +50,7 @@ func GetImplementationData(layer string, name string, module string, kind string
 	return data.Bytes()
 }
 
-func GetDtoData(layer string, name string) []byte {
+func GetDataTransferObject(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := system.GetSeparator()
 

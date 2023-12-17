@@ -43,7 +43,7 @@ func CreateLayer(layer string, name string) error {
 		return err
 	}
 
-	data := template.GetLayerData(layer, name)
+	data := template.GetLayer(layer, name)
 
 	err = file.Set(filepath, data)
 
@@ -61,7 +61,7 @@ func CreateImplementation(layer string, name string) error {
 		return err
 	}
 
-	module, err := application.GetApplicationModule()
+	module, err := application.GetApplicationModuleName()
 
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func CreateImplementation(layer string, name string) error {
 		return err
 	}
 
-	data := template.GetImplementationData(layer, name, module, kind)
+	data := template.GetImplementation(layer, name, module, kind)
 
 	err = file.Set(filepath, data)
 
@@ -105,7 +105,7 @@ func CreateImplementation(layer string, name string) error {
 	return nil
 }
 
-func CreateDto(layer string, name string) error {
+func CreateDataTransferObject(layer string, name string) error {
 	current, err := os.Getwd()
 
 	if err != nil {
@@ -139,7 +139,7 @@ func CreateDto(layer string, name string) error {
 		return err
 	}
 
-	data := template.GetDtoData(layer, name)
+	data := template.GetDataTransferObject(layer, name)
 
 	err = file.Set(filepath, data)
 

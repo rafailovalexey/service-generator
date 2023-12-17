@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetApplicationModule() (string, error) {
+func GetApplicationModuleName() (string, error) {
 	current, err := os.Getwd()
 
 	if err != nil {

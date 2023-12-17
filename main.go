@@ -13,7 +13,7 @@ func main() {
 		log.Fatalf("error %v", err)
 	}
 
-	//err = builder.CreateDto(f.Layer, f.Name)
+	//err = builder.CreateDataTransferObject(f.Layer, f.Name)
 	//
 	//if err != nil {
 	//	log.Fatalf("error %v", err)
