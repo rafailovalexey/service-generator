@@ -1,34 +1,19 @@
 package main
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/modules/flags"
-	"github.com/rafailovalexey/service-generator/internal/modules/layer"
+	"context"
+	"github.com/rafailovalexey/service-generator/cmd/application"
 	"log"
 )
 
 func main() {
-	f, err := flags.NewFlags()
-	l := layer.NewLayer()
+	ctx := context.Background()
+
+	a, err := application.NewApplication(ctx)
 
 	if err != nil {
-		log.Fatalf("error %v", err)
+		log.Fatalf("an error occurred while starting the application %v", err)
 	}
 
-	isExist := l.IsExist(f.Layer)
-
-	if !isExist {
-		log.Fatalf("layer not found")
-	}
-
-	value, err := l.GetLayer(f.Layer)
-
-	if err != nil {
-		log.Fatalf("error %v", err)
-	}
-
-	err = value.Generate(f)
-
-	if err != nil {
-		log.Fatalf("error %v", err)
-	}
+	a.Run()
 }

@@ -1,1 +1,8 @@
+# JetBrains
 .idea
+
+# Build
+build
+
+# Mocks
+*_mock.go
