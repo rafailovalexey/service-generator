@@ -1,7 +1,7 @@
 package strategy
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/modules/builder"
+	"github.com/rafailovalexey/service-generator/internal/modules/facade"
 	"github.com/rafailovalexey/service-generator/internal/modules/flags"
 )
 
@@ -14,7 +14,7 @@ type DataTransferObjectGeneration struct{}
 var _ GenerationStrategyInterface = (*DataTransferObjectGeneration)(nil)
 
 func (c *DataTransferObjectGeneration) Generate(f *flags.Flags) error {
-	err := builder.CreateDataTransferObject(f.Layer, f.Name)
+	err := facade.CreateDataTransferObject(f.Layer, f.Name)
 
 	if err != nil {
 		return err
@@ -28,13 +28,13 @@ type RealisationGeneration struct{}
 var _ GenerationStrategyInterface = (*RealisationGeneration)(nil)
 
 func (p *RealisationGeneration) Generate(f *flags.Flags) error {
-	err := builder.CreateLayer(f.Layer, f.Name)
+	err := facade.CreateLayer(f.Layer, f.Name)
 
 	if err != nil {
 		return err
 	}
 
-	err = builder.CreateImplementation(f.Layer, f.Name)
+	err = facade.CreateImplementation(f.Layer, f.Name)
 
 	if err != nil {
 		return err

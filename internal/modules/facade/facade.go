@@ -1,4 +1,4 @@
-package builder
+package facade
 
 import (
 	"github.com/rafailovalexey/service-generator/internal/modules/application"

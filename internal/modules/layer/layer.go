@@ -50,7 +50,7 @@ func (l *Layer) GetLayer(value string) (strategy.GenerationStrategyInterface, er
 }
 
 func GetDictionary() map[string]strategy.GenerationStrategyInterface {
-	dictionary := make(map[string]strategy.GenerationStrategyInterface)
+	dictionary := make(map[string]strategy.GenerationStrategyInterface, 10)
 
 	dictionary["api"] = &strategy.RealisationGeneration{}
 	dictionary["controller"] = &strategy.RealisationGeneration{}
