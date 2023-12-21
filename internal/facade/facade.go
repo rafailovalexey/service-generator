@@ -1,10 +1,10 @@
 package facade
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/modules/application"
-	"github.com/rafailovalexey/service-generator/internal/modules/directory"
-	"github.com/rafailovalexey/service-generator/internal/modules/file"
-	"github.com/rafailovalexey/service-generator/internal/modules/template"
+	"github.com/rafailovalexey/service-generator/internal/directory"
+	"github.com/rafailovalexey/service-generator/internal/file"
+	"github.com/rafailovalexey/service-generator/internal/module"
+	"github.com/rafailovalexey/service-generator/internal/template"
 	"os"
 	"path"
 )
@@ -61,7 +61,7 @@ func CreateImplementation(layer string, name string) error {
 		return err
 	}
 
-	module, err := application.GetApplicationModuleName()
+	application, err := module.GetApplicationModuleName()
 
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func CreateImplementation(layer string, name string) error {
 		return err
 	}
 
-	data := template.GetImplementation(layer, name, module, kind)
+	data := template.GetImplementation(layer, name, application, kind)
 
 	err = file.Set(filepath, data)
 

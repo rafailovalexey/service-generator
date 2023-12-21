@@ -3,7 +3,7 @@ package template
 import (
 	"bytes"
 	"fmt"
-	"github.com/rafailovalexey/service-generator/internal/modules/system"
+	"github.com/rafailovalexey/service-generator/internal/system"
 	"strings"
 )
 

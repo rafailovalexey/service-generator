@@ -1,9 +1,9 @@
-package application
+package module
 
 import (
 	"fmt"
-	"github.com/rafailovalexey/service-generator/internal/modules/file"
-	"github.com/rafailovalexey/service-generator/internal/modules/system"
+	"github.com/rafailovalexey/service-generator/internal/file"
+	"github.com/rafailovalexey/service-generator/internal/system"
 	"os"
 	"path"
 	"strings"

@@ -2,7 +2,7 @@ package layer
 
 import (
 	"fmt"
-	"github.com/rafailovalexey/service-generator/internal/modules/strategy"
+	"github.com/rafailovalexey/service-generator/internal/strategy"
 	"sync"
 )
 

@@ -2,8 +2,8 @@ package application
 
 import (
 	"context"
-	"github.com/rafailovalexey/service-generator/internal/modules/flags"
-	"github.com/rafailovalexey/service-generator/internal/modules/layer"
+	"github.com/rafailovalexey/service-generator/cmd/flags"
+	"github.com/rafailovalexey/service-generator/internal/layer"
 	"log"
 )
 
@@ -27,21 +27,23 @@ func (a *Application) Run() {
 		log.Fatalf("error %v", err)
 	}
 
-	isExist := l.IsExist(f.Layer)
+	for _, key := range f.Layers {
+		isExist := l.IsExist(key)
 
-	if !isExist {
-		log.Fatalf("layer not found")
-	}
+		if !isExist {
+			log.Fatalf("layer not found")
+		}
 
-	value, err := l.GetLayer(f.Layer)
+		value, err := l.GetLayer(key)
 
-	if err != nil {
-		log.Fatalf("error %v", err)
-	}
+		if err != nil {
+			log.Fatalf("error %v", err)
+		}
 
-	err = value.Generate(f)
+		err = value.Generate(key, f.Name)
 
-	if err != nil {
-		log.Fatalf("error %v", err)
+		if err != nil {
+			log.Fatalf("error %v", err)
+		}
 	}
 }

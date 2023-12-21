@@ -3,6 +3,7 @@ package flags
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 type FlagsInterface interface {
@@ -10,8 +11,8 @@ type FlagsInterface interface {
 }
 
 type Flags struct {
-	Layer string
-	Name  string
+	Layers []string
+	Name   string
 }
 
 var _ FlagsInterface = (*Flags)(nil)
@@ -42,7 +43,7 @@ func (f *Flags) InitializeFlags() error {
 		return fmt.Errorf("name is empty")
 	}
 
-	f.Layer = *layer
+	f.Layers = strings.Split(*layer, ",")
 	f.Name = *name
 
 	return nil
