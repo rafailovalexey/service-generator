@@ -11,7 +11,7 @@ type FlagsInterface interface {
 }
 
 type Flags struct {
-	Layers []string
+	Layers map[string]bool
 	Name   string
 }
 
@@ -43,7 +43,17 @@ func (f *Flags) InitializeFlags() error {
 		return fmt.Errorf("name is empty")
 	}
 
-	f.Layers = strings.Split(*layer, ",")
+	layers := make(map[string]bool, 100)
+
+	for _, value := range strings.Split(*layer, ",") {
+		if value == "provider" {
+			layers[value] = true
+		}
+
+		layers[value] = false
+	}
+
+	f.Layers = layers
 	f.Name = *name
 
 	return nil

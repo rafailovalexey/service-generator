@@ -52,21 +52,22 @@ func (l *Layer) GetLayer(value string) (strategy.GenerationStrategyInterface, er
 func GetDictionary() map[string]strategy.GenerationStrategyInterface {
 	dictionary := make(map[string]strategy.GenerationStrategyInterface, 100)
 
-	dictionary["api"] = &strategy.IncomingGeneration{}
-	dictionary["controller"] = &strategy.IncomingGeneration{}
-	dictionary["client"] = &strategy.IncomingGeneration{}
+	dictionary["api"] = &strategy.IncomingGenerationStrategy{}
+	dictionary["controller"] = &strategy.IncomingGenerationStrategy{}
+	dictionary["client"] = &strategy.IncomingGenerationStrategy{}
 
-	// provider
+	dictionary["provider"] = &strategy.ProviderGenerationStrategy{}
+
 	// handler
 	// implementation
 
-	dictionary["service"] = &strategy.RealisationGeneration{}
-	dictionary["repository"] = &strategy.RealisationGeneration{}
-	dictionary["converter"] = &strategy.RealisationGeneration{}
-	dictionary["validation"] = &strategy.RealisationGeneration{}
+	dictionary["service"] = &strategy.RealisationGenerationStrategy{}
+	dictionary["repository"] = &strategy.RealisationGenerationStrategy{}
+	dictionary["converter"] = &strategy.RealisationGenerationStrategy{}
+	dictionary["validation"] = &strategy.RealisationGenerationStrategy{}
 
-	dictionary["dto"] = &strategy.DataTransferObjectGeneration{}
-	dictionary["model"] = &strategy.DataTransferObjectGeneration{}
+	dictionary["dto"] = &strategy.DataTransferObjectGenerationStrategy{}
+	dictionary["model"] = &strategy.DataTransferObjectGenerationStrategy{}
 
 	return dictionary
 }

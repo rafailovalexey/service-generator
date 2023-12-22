@@ -24,26 +24,54 @@ func (a *Application) Run() {
 	l := layer.NewLayer()
 
 	if err != nil {
-		log.Fatalf("error %v", err)
+		log.Panicf("error %v\n", err)
 	}
 
-	for _, key := range f.Layers {
+	last := make(map[string]struct{}, 10)
+
+	for key, isNeedLast := range f.Layers {
+		if !isNeedLast {
+			last[key] = struct{}{}
+
+			continue
+		}
+
 		isExist := l.IsExist(key)
 
 		if !isExist {
-			log.Fatalf("layer not found")
+			log.Panicf("layer not found\n")
 		}
 
 		value, err := l.GetLayer(key)
 
 		if err != nil {
-			log.Fatalf("error %v", err)
+			log.Panicf("error %v\n", err)
 		}
 
 		err = value.Generate(key, f.Name)
 
 		if err != nil {
-			log.Fatalf("error %v", err)
+			log.Panicf("error %v\n", err)
+		}
+	}
+
+	for key, _ := range last {
+		isExist := l.IsExist(key)
+
+		if !isExist {
+			log.Panicf("layer not found\n")
+		}
+
+		value, err := l.GetLayer(key)
+
+		if err != nil {
+			log.Panicf("error %v\n", err)
+		}
+
+		err = value.Generate(key, f.Name)
+
+		if err != nil {
+			log.Panicf("error %v\n", err)
 		}
 	}
 }

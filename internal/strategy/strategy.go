@@ -10,11 +10,11 @@ type GenerationStrategyInterface interface {
 	Generate(string, string) error
 }
 
-type DataTransferObjectGeneration struct{}
+type DataTransferObjectGenerationStrategy struct{}
 
-var _ GenerationStrategyInterface = (*DataTransferObjectGeneration)(nil)
+var _ GenerationStrategyInterface = (*DataTransferObjectGenerationStrategy)(nil)
 
-func (d *DataTransferObjectGeneration) Generate(layer string, name string) error {
+func (d *DataTransferObjectGenerationStrategy) Generate(layer string, name string) error {
 	err := facade.CreateDataTransferObject(layer, name)
 
 	if err != nil {
@@ -24,11 +24,11 @@ func (d *DataTransferObjectGeneration) Generate(layer string, name string) error
 	return nil
 }
 
-type RealisationGeneration struct{}
+type RealisationGenerationStrategy struct{}
 
-var _ GenerationStrategyInterface = (*RealisationGeneration)(nil)
+var _ GenerationStrategyInterface = (*RealisationGenerationStrategy)(nil)
 
-func (r *RealisationGeneration) Generate(layer string, name string) error {
+func (r *RealisationGenerationStrategy) Generate(layer string, name string) error {
 	imports := &template.Imports{}
 	methods := &template.Methods{}
 	functions := &template.Functions{}
@@ -48,11 +48,11 @@ func (r *RealisationGeneration) Generate(layer string, name string) error {
 	return nil
 }
 
-type IncomingGeneration struct{}
+type IncomingGenerationStrategy struct{}
 
-var _ GenerationStrategyInterface = (*IncomingGeneration)(nil)
+var _ GenerationStrategyInterface = (*IncomingGenerationStrategy)(nil)
 
-func (c *IncomingGeneration) Generate(layer string, name string) error {
+func (c *IncomingGenerationStrategy) Generate(layer string, name string) error {
 	imports := &template.Imports{}
 	methods := &template.Methods{}
 	functions := &template.Functions{}
@@ -76,6 +76,26 @@ func (c *IncomingGeneration) Generate(layer string, name string) error {
 	}
 
 	err = facade.CreateResponseObject(layer, name)
+
+	if err != nil {
+		log.Panicf("%v\n", err)
+	}
+
+	return nil
+}
+
+type ProviderGenerationStrategy struct{}
+
+var _ GenerationStrategyInterface = (*ProviderGenerationStrategy)(nil)
+
+func (c *ProviderGenerationStrategy) Generate(layer string, name string) error {
+	err := facade.CreateProviderInterface(layer, name)
+
+	if err != nil {
+		log.Panicf("%v\n", err)
+	}
+
+	err = facade.CreateProvider(layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)

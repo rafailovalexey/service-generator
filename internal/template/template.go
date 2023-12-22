@@ -28,7 +28,7 @@ type Method struct {
 
 type Methods = []Method
 
-func GetInterfaceTemplate(layer string, name string, separator string, imports *Imports, methods *Methods) []byte {
+func GetInterfaceTemplate(separator string, layer string, name string, imports *Imports, methods *Methods) []byte {
 	data := bytes.Buffer{}
 
 	if len(*methods) == 0 {
@@ -89,7 +89,7 @@ func GetInterfaceTemplate(layer string, name string, separator string, imports *
 	return data.Bytes()
 }
 
-func GetRealisationInterfaceTemplate(layer string, name string, application string, kind string, separator string, imports *Imports, methods *Methods, functions *Functions) []byte {
+func GetRealisationInterfaceTemplate(application string, separator string, kind string, layer string, name string, imports *Imports, methods *Methods, functions *Functions) []byte {
 	data := bytes.Buffer{}
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
@@ -110,7 +110,7 @@ func GetRealisationInterfaceTemplate(layer string, name string, application stri
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%s struct{}", capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", capitalize(name), capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
@@ -239,7 +239,7 @@ func GetRealisationInterfaceTemplate(layer string, name string, application stri
 	return data.Bytes()
 }
 
-func GetDataTransferObjectTemplate(layer string, name string, separator string) []byte {
+func GetDataTransferObjectTemplate(separator string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
@@ -278,7 +278,7 @@ func GetDataTransferObjectTemplate(layer string, name string, separator string) 
 	return data.Bytes()
 }
 
-func GetRequestTemplate(name string, separator string) []byte {
+func GetRequestTemplate(separator string, name string) []byte {
 	data := bytes.Buffer{}
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
@@ -287,11 +287,109 @@ func GetRequestTemplate(name string, separator string) []byte {
 	return data.Bytes()
 }
 
-func GetResponseTemplate(name string, separator string) []byte {
+func GetResponseTemplate(separator string, name string) []byte {
 	data := bytes.Buffer{}
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
 	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetProviderInterfaceTemplate(application string, separator string, kind string, layers []string, layer string, name string) []byte {
+	data := bytes.Buffer{}
+
+	data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, l := range layers {
+		data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", capitalize(name), capitalize(layer)))
+	data.WriteString(separator)
+
+	for _, l := range layers {
+		data.WriteString(fmt.Sprintf("\tGet%s%s() %s.%s%sInterface", capitalize(name), capitalize(l), l, capitalize(name), capitalize(l)))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetProviderRealisationTemplate(application string, separator string, kind string, layers []string, layer string, name string) []byte {
+	data := bytes.Buffer{}
+
+	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, lowercase(layer)))
+	data.WriteString(separator)
+
+	for _, l := range layers {
+		data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%s%s \"%s/%s/%s/%s\"", name, capitalize(l), application, kind, l, name))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%s struct {", capitalize(name), capitalize(layer)))
+	data.WriteString(separator)
+
+	for _, l := range layers {
+		data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, capitalize(l), l, capitalize(name), capitalize(l)))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", capitalize(name), capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	for _, l := range layers {
+		data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() %s.%s%sInterface {", first(layer), capitalize(name), capitalize(layer), capitalize(name), capitalize(l), l, capitalize(name), capitalize(l)))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", first(layer), name, capitalize(l)))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", first(layer), name, capitalize(l), name, capitalize(l), capitalize(name), capitalize(l)))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\treturn %s.%s%s", first(layer), name, capitalize(l)))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+	}
 
 	return data.Bytes()
 }
