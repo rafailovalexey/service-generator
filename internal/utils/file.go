@@ -1,20 +1,10 @@
-package file
+package utils
 
 import (
 	"os"
 )
 
-func IsExist(path string) bool {
-	_, err := os.Stat(path)
-
-	if err != nil {
-		return false
-	}
-
-	return true
-}
-
-func Create(path string) error {
+func CreateFile(path string) error {
 	file, err := os.Create(path)
 
 	if err != nil {
@@ -26,7 +16,7 @@ func Create(path string) error {
 	return nil
 }
 
-func Read(path string) (string, error) {
+func ReadFileData(path string) (string, error) {
 	data, err := os.ReadFile(path)
 
 	if err != nil {
@@ -36,7 +26,7 @@ func Read(path string) (string, error) {
 	return string(data), nil
 }
 
-func Set(filepath string, data []byte) error {
+func SetFileData(filepath string, data []byte) error {
 	err := os.WriteFile(filepath, data, os.ModePerm)
 
 	if err != nil {

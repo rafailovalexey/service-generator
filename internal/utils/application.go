@@ -1,15 +1,13 @@
-package module
+package utils
 
 import (
 	"fmt"
-	"github.com/rafailovalexey/service-generator/internal/file"
-	"github.com/rafailovalexey/service-generator/internal/system"
 	"os"
 	"path"
 	"strings"
 )
 
-func GetApplicationModuleName() (string, error) {
+func GetApplicationName() (string, error) {
 	current, err := os.Getwd()
 
 	if err != nil {
@@ -17,22 +15,22 @@ func GetApplicationModuleName() (string, error) {
 	}
 
 	extension := "mod"
-	filename := file.GetFilename("go", extension)
+	filename := GetFilename("go", extension)
 	filepath := path.Join(current, filename)
 
-	isExist := file.IsExist(filepath)
+	isExist := PathIsExist(filepath)
 
 	if !isExist {
 		return "", fmt.Errorf("%s not found in %s", filename, current)
 	}
 
-	read, err := file.Read(filepath)
+	read, err := ReadFileData(filepath)
 
 	if err != nil {
 		return "", err
 	}
 
-	separator := system.GetSeparator()
+	separator := GetSeparator()
 
 	temporary := strings.Split(string(read), separator)[0]
 	module := strings.Split(temporary, " ")[1]

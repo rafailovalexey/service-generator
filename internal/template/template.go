@@ -3,34 +3,110 @@ package template
 import (
 	"bytes"
 	"fmt"
-	"github.com/rafailovalexey/service-generator/internal/system"
 	"strings"
 )
 
-func GetLayer(layer string, name string) []byte {
-	data := bytes.Buffer{}
-	separator := system.GetSeparator()
+type Imports = []string
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", capitalize(name), capitalize(layer)))
-	data.WriteString(separator)
+type Function struct {
+	Name          string
+	ArgumentsType []string
+	ArgumentsName []string
+	Outputs       []string
+	Code          []string
+}
+
+type Functions = []Function
+
+type Method struct {
+	Name          string
+	ArgumentsType []string
+	ArgumentsName []string
+	Outputs       []string
+	Code          []string
+}
+
+type Methods = []Method
+
+func GetInterfaceTemplate(layer string, name string, separator string, imports *Imports, methods *Methods) []byte {
+	data := bytes.Buffer{}
+
+	if len(*methods) == 0 {
+		data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", capitalize(name), capitalize(layer)))
+		data.WriteString(separator)
+	}
+
+	if len(*methods) != 0 {
+		data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		if len(*imports) != 0 {
+			data.WriteString(fmt.Sprintf("import ("))
+			data.WriteString(separator)
+
+			for _, library := range *imports {
+				data.WriteString(fmt.Sprintf("\t\"%s\"", library))
+				data.WriteString(separator)
+			}
+
+			data.WriteString(fmt.Sprintf(")"))
+			data.WriteString(separator)
+		}
+
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("type %s%sInterface interface {", capitalize(name), capitalize(layer)))
+		data.WriteString(separator)
+
+		for _, method := range *methods {
+			arguments := strings.Join(method.ArgumentsType, ", ")
+			outputs := strings.Join(method.Outputs, ", ")
+
+			if len(method.Outputs) > 1 {
+				data.WriteString(fmt.Sprintf("\t%s(%s) (%s)", method.Name, arguments, outputs))
+				data.WriteString(separator)
+			}
+
+			if len(method.Outputs) == 1 {
+				data.WriteString(fmt.Sprintf("\t%s(%s) %s", method.Name, arguments, outputs))
+				data.WriteString(separator)
+			}
+
+			if len(method.Outputs) == 0 {
+				data.WriteString(fmt.Sprintf("\t%s(%s)", method.Name, arguments))
+				data.WriteString(separator)
+			}
+		}
+
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+	}
 
 	return data.Bytes()
 }
 
-func GetImplementation(layer string, name string, module string, kind string) []byte {
+func GetRealisationInterfaceTemplate(layer string, name string, application string, kind string, separator string, imports *Imports, methods *Methods, functions *Functions) []byte {
 	data := bytes.Buffer{}
-	separator := system.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", module, kind, lowercase(layer)))
+	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, lowercase(layer)))
 	data.WriteString(separator)
+
+	if len(*imports) != 0 {
+		for _, library := range *imports {
+			data.WriteString(fmt.Sprintf("\t\"%s\"", library))
+			data.WriteString(separator)
+		}
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -47,12 +123,124 @@ func GetImplementation(layer string, name string, module string, kind string) []
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
+	if len(*methods) != 0 {
+		for _, method := range *methods {
+			args := make([]string, len(method.ArgumentsType))
+
+			for index, _ := range method.ArgumentsType {
+				args[index] = fmt.Sprintf("%s %s", method.ArgumentsName[index], method.ArgumentsType[index])
+			}
+
+			arguments := strings.Join(args, ", ")
+			outputs := strings.Join(method.Outputs, ", ")
+
+			data.WriteString(separator)
+
+			if len(method.Outputs) > 1 {
+				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) (%s) {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments, outputs))
+
+				data.WriteString(separator)
+
+				for _, code := range method.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			if len(method.Outputs) == 1 {
+				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) %s {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments, outputs))
+
+				data.WriteString(separator)
+
+				for _, code := range method.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			if len(method.Outputs) == 0 {
+				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments))
+
+				data.WriteString(separator)
+
+				for _, code := range method.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			data.WriteString(separator)
+		}
+	}
+
+	if len(*functions) != 0 {
+		for _, function := range *functions {
+			args := make([]string, len(function.ArgumentsType))
+
+			for index, _ := range function.ArgumentsType {
+				args[index] = fmt.Sprintf("%s %s", function.ArgumentsName[index], function.ArgumentsType[index])
+			}
+
+			arguments := strings.Join(args, ", ")
+			outputs := strings.Join(function.Outputs, ", ")
+
+			data.WriteString(separator)
+
+			if len(function.Outputs) > 1 {
+				data.WriteString(fmt.Sprintf("func %s(%s) (%s) {", function.Name, arguments, outputs))
+
+				data.WriteString(separator)
+
+				for _, code := range function.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			if len(function.Outputs) == 1 {
+				data.WriteString(fmt.Sprintf("func %s(%s) %s {", function.Name, arguments, outputs))
+
+				data.WriteString(separator)
+
+				for _, code := range function.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			if len(function.Outputs) == 0 {
+				data.WriteString(fmt.Sprintf("func %s(%s) {", function.Name, arguments))
+
+				data.WriteString(separator)
+
+				for _, code := range function.Code {
+					data.WriteString(fmt.Sprintf("\t%s", code))
+					data.WriteString(separator)
+				}
+
+				data.WriteString(fmt.Sprintf("}"))
+			}
+
+			data.WriteString(separator)
+		}
+
+	}
+
 	return data.Bytes()
 }
 
-func GetDataTransferObject(layer string, name string) []byte {
+func GetDataTransferObjectTemplate(layer string, name string, separator string) []byte {
 	data := bytes.Buffer{}
-	separator := system.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
 	data.WriteString(separator)
@@ -72,19 +260,37 @@ func GetDataTransferObject(layer string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("func New%s%s(%s ...%s%s) *%s%s {", capitalize(name), capitalize(layer), lowercase(name), capitalize(singular(name)), capitalize(layer), capitalize(name), capitalize(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s := make([]%s%s, len(%s))", lowercase(plural(layer)), capitalize(singular(name)), capitalize(layer), lowercase(name)))
+	data.WriteString(fmt.Sprintf("\t%s := make([]%s%s, len(%s))", lowercase(layer), capitalize(singular(name)), capitalize(layer), lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tfor _, %s := range %s {", lowercase(singular(name)), lowercase(name)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t%s = append(%s, %s)", lowercase(plural(layer)), lowercase(plural(layer)), lowercase(singular(name))))
+	data.WriteString(fmt.Sprintf("\t\t%s = append(%s, %s)", lowercase(layer), lowercase(layer), lowercase(singular(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s", lowercase(plural(layer))))
+	data.WriteString(fmt.Sprintf("\treturn &%s", lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetRequestTemplate(name string, separator string) []byte {
+	data := bytes.Buffer{}
+
+	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetResponseTemplate(name string, separator string) []byte {
+	data := bytes.Buffer{}
+
+	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -110,10 +316,6 @@ func singular(value string) string {
 	return value[:1] + value[1:len(value)-1]
 }
 
-func plural(value string) string {
-	if value == "" {
-		return value
-	}
-
-	return value + "s"
+func first(value string) string {
+	return value[:1]
 }
