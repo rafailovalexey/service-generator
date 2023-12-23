@@ -280,9 +280,6 @@ func GetImplementationRealisationTemplate(separator string, layer string, name s
 func GetReadmeTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	// fmt.Sprintf("%s", name)
-
-	data.WriteString(separator)
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -291,19 +288,35 @@ func GetReadmeTemplate(separator string) []byte {
 func GetGitIgnoreTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//# JetBrains
-	//.idea
-	//
-	//# Build
-	//build
-	//
-	//# Environment
-	//.env
-	//
-	//# Mocks
-	//*_mock.go
-
+	data.WriteString(fmt.Sprintf("# JetBrains"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".idea"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Environment"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".env"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("*_mock.go"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -320,53 +333,74 @@ func GetExampleEnvironmentTemplate(separator string) []byte {
 func GetGrpcMicroserviceMakefileTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//# Variables
-	//
-	//PROTO_SOURCE_DIRECTORY = api
-	//PROTO_OUTPUT_DIRECTORY = pkg
-	//
-	//PROTO_FILES = \
-	//	employees_v1/employees.proto
-	//
-	//MOCKS_OUTPUT_DIRECTORY = mocks
-	//
-	//MOCKS_FILES = \
-	//	internal/repository/repository.go
-	//
-	//# GRPC
-	//
-	//grpc-generate:
-	//	bin/grpc-generate.sh $(PROTO_SOURCE_DIRECTORY) $(PROTO_OUTPUT_DIRECTORY) $(PROTO_FILES)
-	//
-	//# Mocks
-	//
-	//mocks-generate:
-	//	bin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)
-	//
-	//# Generate
-	//
-	//generate:
-	//	make grpc-generate
-	//	make mocks-generate
-	//
-	//# Download
-	//
-	//download:
-	//	go mod download
-	//
-	//# Build
-	//
-	//build:
-	//	go build -o build/main main.go
-	//
-	//# Tests
-	//
-	//tests:
-	//	go test -v ./...
-	//
-	//.PHONY: grpc-generate, mocks-generate, generate, download, build, tests
-
+	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_SOURCE_DIRECTORY = api"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_OUTPUT_DIRECTORY = pkg"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_FILES = \\"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY = mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_FILES = \\"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# GRPC"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("grpc-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tbin/grpc-generate.sh $(PROTO_SOURCE_DIRECTORY) $(PROTO_OUTPUT_DIRECTORY) $(PROTO_FILES)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("mocks-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tbin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Generate"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmake grpc-generate"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmake mocks-generate"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("download:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo mod download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("build:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo build -o build/main main.go"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Tests"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("tests:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo test -v ./..."))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mocks-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -375,41 +409,56 @@ func GetGrpcMicroserviceMakefileTemplate(separator string) []byte {
 func GetDefaultMicroserviceMakefileTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//# Variables
-	//
-	//MOCKS_OUTPUT_DIRECTORY = mocks
-	//
-	//MOCKS_FILES = \
-	//	internal/repository/repository.go
-	//
-	//# Mocks
-	//
-	//mocks-generate:
-	//	bin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)
-	//
-	//# Generate
-	//
-	//generate:
-	//	make mocks-generate
-	//
-	//# Download
-	//
-	//download:
-	//	go mod download
-	//
-	//# Build
-	//
-	//build:
-	//	go build -o build/main main.go
-	//
-	//# Tests
-	//
-	//tests:
-	//	go test -v ./...
-	//
-	//.PHONY: mocks-generate, generate, download, build, tests
-
+	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY = mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_FILES = \\"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("mocks-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tbin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Generate"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmake mocks-generate"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("download:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo mod download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("build:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo build -o build/main main.go"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("# Tests"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("tests:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tgo test -v ./..."))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(".PHONY: mocks-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -418,16 +467,27 @@ func GetDefaultMicroserviceMakefileTemplate(separator string) []byte {
 func GetDockerIgnoreTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//# JetBrains
-	//.idea
-	//
-	//# Build
-	//build
-	//
-	//# Mocks
-	//*_mock.go
-
+	data.WriteString(fmt.Sprintf("# JetBrains"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".idea"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("*_mock.go"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -436,27 +496,35 @@ func GetDockerIgnoreTemplate(separator string) []byte {
 func GetDockerWithPortTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//FROM golang:latest
-	//
-	//WORKDIR /usr/local/application
-	//
-	//COPY . .
-	//
-	//RUN apt-get update --yes
-	//RUN apt-get upgrade --yes
-	//
-	//RUN apt-get install --yes make
-	//
-	//RUN export PATH="$PATH:$(go env GOPATH)/bin"
-	//
-	//RUN make download
-	//RUN make build
-	//
-	//EXPOSE 3000
-	//
-	//CMD ["./build/main"]
-
+	data.WriteString(fmt.Sprintf("FROM golang:latest"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("COPY . ."))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN make download"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN make build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("EXPOSE 3000"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -465,25 +533,32 @@ func GetDockerWithPortTemplate(separator string) []byte {
 func GetDockerWithoutPortTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//FROM golang:latest
-	//
-	//WORKDIR /usr/local/application
-	//
-	//COPY . .
-	//
-	//RUN apt-get update --yes
-	//RUN apt-get upgrade --yes
-	//
-	//RUN apt-get install --yes make
-	//
-	//RUN export PATH="$PATH:$(go env GOPATH)/bin"
-	//
-	//RUN make download
-	//RUN make build
-	//
-	//CMD ["./build/main"]
-
+	data.WriteString(fmt.Sprintf("FROM golang:latest"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("COPY . ."))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN make download"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN make build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -492,35 +567,49 @@ func GetDockerWithoutPortTemplate(separator string) []byte {
 func GetGrpcGenerateShellScriptTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//#!/bin/bash
-	//
-	//if [ "$#" -lt 2 ]; then
-	//echo "Usage: $0 <PROTO_SOURCE_DIRECTORY> <PROTO_OUTPUT_DIRECTORY> <PROTO_FILES>"
-	//exit 1
-	//fi
-	//
-	//PROTO_SOURCE_DIRECTORY="$1"
-	//PROTO_OUTPUT_DIRECTORY="$2"
-	//PROTO_FILES="${*:3}"
-	//
-	//for proto_file in $PROTO_FILES; do
-	//
-	//PROTO_FILE_DIRECTORY=$(dirname "$proto_file")
-	//
-	//mkdir -p "$PROTO_OUTPUT_DIRECTORY/$PROTO_FILE_DIRECTORY"
-	//
-	//echo "Generating proto file for $proto_file..."
-	//
-	//protoc \
-	//--proto_path="$PROTO_SOURCE_DIRECTORY" \
-	//--go_out="$PROTO_OUTPUT_DIRECTORY" \
-	//--go_opt=paths=source_relative "$proto_file" \
-	//--go-grpc_out="$PROTO_OUTPUT_DIRECTORY" \
-	//--go-grpc_opt=paths=source_relative "$proto_file"
-	//
-	//done
-
+	data.WriteString(fmt.Sprintf("#!/bin/bash"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("if [ \"$#\" -lt 2 ]; then"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\techo \"Usage: $0 <PROTO_SOURCE_DIRECTORY> <PROTO_OUTPUT_DIRECTORY> <PROTO_FILES>\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\texit 1"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("fi"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_SOURCE_DIRECTORY=\"$1\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_OUTPUT_DIRECTORY=\"$2\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("PROTO_FILES=\"${*:3}\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("for proto_file in $PROTO_FILES; do"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tPROTO_FILE_DIRECTORY=$(dirname \"$proto_file\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmkdir -p \"$PROTO_OUTPUT_DIRECTORY/$PROTO_FILE_DIRECTORY\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\techo \"Generating proto file for $proto_file...\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tprotoc \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t--proto_path=\"$PROTO_SOURCE_DIRECTORY\" \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t--go_out=\"$PROTO_OUTPUT_DIRECTORY\" \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t--go_opt=paths=source_relative \"$proto_file\" \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t--go-grpc_out=\"$PROTO_OUTPUT_DIRECTORY\" \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t--go-grpc_opt=paths=source_relative \"$proto_file\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("done"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -528,6 +617,48 @@ func GetGrpcGenerateShellScriptTemplate(separator string) []byte {
 
 func GetMockGenerateShellScriptTemplate(separator string) []byte {
 	data := bytes.Buffer{}
+
+	data.WriteString(fmt.Sprintf("#!/bin/bash"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("if [ \"$#\" -lt 1 ]; then"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\techo \"Usage: $0 <MOCKS_OUTPUT_DIRECTORY> <MOCKS_FILES>\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\texit 1"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("fi"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY=\"$1\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MOCKS_FILES=\"${*:2}\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("for mock_file in $MOCKS_FILES; do"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tDIRECTORY=$(dirname \"$mock_file\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tFILENAME=$(basename \"$mock_file\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tEXTENSION=\"${FILENAME##*.}\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tFILENAME_WITHOUT_EXTENSIONS=\"${FILENAME%.*}\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tOUTPUT_PATH=\"$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY/${FILENAME_WITHOUT_EXTENSIONS}_mock.$EXTENSION\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmkdir -p \"$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\techo \"Generating mock file for $mock_file...\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tmockgen -source=\"$mock_file\" -destination=\"$OUTPUT_PATH\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("done"))
+	data.WriteString(separator)
 
 	//#!/bin/bash
 	//
@@ -556,9 +687,6 @@ func GetMockGenerateShellScriptTemplate(separator string) []byte {
 	//mockgen -source="$mock_file" -destination="$OUTPUT_PATH"
 	//
 	//done
-
-	data.WriteString(separator)
-	data.WriteString(separator)
 
 	return data.Bytes()
 }
