@@ -19,9 +19,7 @@ func main() {
 
 	separator := utils.GetSeparator()
 
-	fmt.Printf("%s\n", string(template.GetGrpcLoggingInterceptorTemplate(separator)))
-	//fmt.Printf("%s\n", string(template.GetGrpcTraceCodeInterceptorTemplate(separator)))
-	//fmt.Printf("%s\n", string(template.GetGrpcAuthenticationMiddlewareTemplate(separator)))
+	fmt.Printf("%s\n", string(template.GetGrpcAuthenticationMiddlewareTemplate(separator)))
 	//fmt.Printf("%s\n", string(template.GetGrpcServerTemplate(separator)))
 	//fmt.Printf("%s\n", string(template.GetHttpLoggingInterceptorTemplate(separator)))
 	//fmt.Printf("%s\n", string(template.GetHttpAuthenticationMiddlewareTemplate(separator)))

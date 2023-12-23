@@ -694,44 +694,68 @@ func GetMockGenerateShellScriptTemplate(separator string) []byte {
 func GetGrpcLoggingInterceptorTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//package interceptor
-	//
-	//import (
-	//	"context"
-	//"google.golang.org/grpc"
-	//"google.golang.org/grpc/codes"
-	//"google.golang.org/grpc/metadata"
-	//"google.golang.org/grpc/status"
-	//"log"
-	//)
-	//
-	//func LoggingInterceptor() grpc.UnaryServerInterceptor {
-	//	return func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	//	md, isExist := metadata.FromIncomingContext(ctx)
-	//
-	//	if !isExist {
-	//	return nil, status.Errorf(codes.Internal, "failed to read metadata")
-	//}
-	//
-	//	tracecode := md["tracecode"][0]
-	//
-	//	log.Printf("incoming grpc request: %s (%s)", info.FullMethod, tracecode)
-	//
-	//	response, err := handler(ctx, request)
-	//
-	//	if err != nil {
-	//	log.Printf("error in grpc request %s (%s) \n %v", info.FullMethod, tracecode, err)
-	//}
-	//
-	//	if err == nil {
-	//	log.Printf("outgoing grpc response %s (%s)", info.FullMethod, tracecode)
-	//}
-	//
-	//	return response, err
-	//}
-	//}
-
+	data.WriteString(fmt.Sprintf("package interceptor"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"context\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/codes\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/metadata\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/status\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"log\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func LoggingInterceptor() grpc.UnaryServerInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ttracecode := md[\"tracecode\"][0]"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"incoming grpc request: %s (%s)\", info.FullMethod, tracecode)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tresponse, err := handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, tracecode, err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif err == nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"outgoing grpc response %s (%s)\", info.FullMethod, tracecode)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn response, err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -740,57 +764,91 @@ func GetGrpcLoggingInterceptorTemplate(separator string) []byte {
 func GetGrpcTraceCodeInterceptorTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
-	//package interceptor
-	//
-	//import (
-	//	"context"
-	//"crypto/rand"
-	//"encoding/hex"
-	//"google.golang.org/grpc"
-	//"google.golang.org/grpc/codes"
-	//"google.golang.org/grpc/metadata"
-	//"google.golang.org/grpc/status"
-	//"log"
-	//)
-	//
-	//func TracecodeInterceptor() grpc.UnaryServerInterceptor {
-	//	return func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	//	md, isExist := metadata.FromIncomingContext(ctx)
-	//
-	//	if !isExist {
-	//	log.Printf("metadata not found in the request context\n")
-	//
-	//	return nil, status.Errorf(codes.Internal, "failed to read metadata")
-	//}
-	//
-	//	if len(md["tracecode"]) != 0 {
-	//	return handler(ctx, request)
-	//}
-	//
-	//	tracecode, err := generateTracecode()
-	//
-	//	if err != nil {
-	//	return nil, status.Errorf(codes.Internal, "failed to generate tracecode")
-	//}
-	//
-	//	md = metadata.Join(md, metadata.New(map[string]string{"tracecode": tracecode}))
-	//	ctx = metadata.NewIncomingContext(ctx, md)
-	//
-	//	return handler(ctx, request)
-	//}
-	//}
-	//
-	//func generateTracecode() (string, error) {
-	//	tracecode := make([]byte, 16)
-	//
-	//	if _, err := rand.Read(tracecode); err != nil {
-	//		return "", err
-	//	}
-	//
-	//	return hex.EncodeToString(tracecode), nil
-	//}
-
+	data.WriteString(fmt.Sprintf("package interceptor"))
 	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"context\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"crypto/rand\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"encoding/hex\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/codes\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/metadata\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/status\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"log\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func TracecodeInterceptor() grpc.UnaryServerInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Printf(\"metadata not found in the request context\\n\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif len(md[\"tracecode\"]) != 0 {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ttracecode, err := generateTracecode()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to generate tracecode\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd = metadata.Join(md, metadata.New(map[string]string{\"tracecode\": tracecode}))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tctx = metadata.NewIncomingContext(ctx, md)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func generateTracecode() (string, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\ttracecode := make([]byte, 16)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif _, err := rand.Read(tracecode); err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn \"\", err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn hex.EncodeToString(tracecode), nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
 	return data.Bytes()
