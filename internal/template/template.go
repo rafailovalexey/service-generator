@@ -277,7 +277,7 @@ func GetImplementationRealisationTemplate(separator string, layer string, name s
 	return data.Bytes()
 }
 
-func GetReadmeTemplate(separator string, name string) []byte {
+func GetReadmeTemplate(separator string) []byte {
 	data := bytes.Buffer{}
 
 	// fmt.Sprintf("%s", name)
