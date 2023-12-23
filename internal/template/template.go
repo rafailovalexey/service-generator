@@ -277,10 +277,8 @@ func GetImplementationRealisationTemplate(separator string, layer string, name s
 	return data.Bytes()
 }
 
-func GetReadmeTemplate(separator string) []byte {
+func GetReadmeTemplate() []byte {
 	data := bytes.Buffer{}
-
-	data.WriteString(separator)
 
 	return data.Bytes()
 }
@@ -324,8 +322,6 @@ func GetGitIgnoreTemplate(separator string) []byte {
 
 func GetExampleEnvironmentTemplate(separator string) []byte {
 	data := bytes.Buffer{}
-
-	data.WriteString(separator)
 
 	return data.Bytes()
 }

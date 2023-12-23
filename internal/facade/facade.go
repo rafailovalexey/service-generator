@@ -22,7 +22,7 @@ func CreateInterface(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer)
-	filepath := path.Join(current, kind, layer, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -75,7 +75,7 @@ func CreateRealisationInterface(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer, name)
-	filepath := path.Join(current, kind, layer, name, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -122,7 +122,7 @@ func CreateDataTransferObject(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer, name)
-	filepath := path.Join(current, kind, layer, name, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -170,7 +170,7 @@ func CreateRequestObject(layer string, name string) error {
 
 	filename := utils.GetFilename(request, extension)
 	directory := path.Join(current, kind, layer, name, request)
-	filepath := path.Join(current, kind, layer, name, request, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -218,7 +218,7 @@ func CreateResponseObject(layer string, name string) error {
 
 	filename := utils.GetFilename(response, extension)
 	directory := path.Join(current, kind, layer, name, response)
-	filepath := path.Join(current, kind, layer, name, response, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -271,7 +271,7 @@ func CreateProvider(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer, name)
-	filepath := path.Join(current, kind, layer, name, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -348,7 +348,7 @@ func CreateProviderInterface(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer)
-	filepath := path.Join(current, kind, layer, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -423,7 +423,7 @@ func CreateImplementation(layer string, name string) error {
 
 	filename := utils.GetFilename(layer, extension)
 	directory := path.Join(current, kind, layer, name)
-	filepath := path.Join(current, kind, layer, name, filename)
+	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
 
@@ -442,6 +442,924 @@ func CreateImplementation(layer string, name string) error {
 	}
 
 	data := template.GetImplementationRealisationTemplate(separator, layer, name)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateReadme() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	name := "README"
+	extension := "md"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetReadmeTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGitIgnore() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := ".gitignore"
+	extension := ""
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGitIgnoreTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateExampleEnvironment() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := ".example"
+	extension := "env"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetExampleEnvironmentTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcMicroserviceMakefile() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := "Makefile"
+	extension := ""
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcMicroserviceMakefileTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateDefaultMicroserviceMakefile() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := "Makefile"
+	extension := ""
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetDefaultMicroserviceMakefileTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateDockerIgnore() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := ".dockerignore"
+	extension := ""
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetDockerIgnoreTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateDockerWithPort() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := "application"
+	extension := "dockerfile"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetDockerWithPortTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateDockerWithoutPort() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	name := "application"
+	extension := "dockerfile"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetDockerWithoutPortTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcGenerateShellScript() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "bin"
+	name := "grpc-generate"
+	extension := "sh"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcGenerateShellScriptTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateMockGenerateShellScript() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "bin"
+	name := "mock-generate"
+	extension := "sh"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetMockGenerateShellScriptTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcLoggingInterceptor() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "grpc_server"
+	folder := "interceptor"
+	name := "logging"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcLoggingInterceptorTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcTraceCodeInterceptor() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "grpc_server"
+	folder := "interceptor"
+	name := "trace_code"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcTraceCodeInterceptorTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcAuthenticationMiddleware() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "grpc_server"
+	folder := "middleware"
+	name := "authentication"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcAuthenticationMiddlewareTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcServer() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "grpc_server"
+	name := "grpc_server"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcServerTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHttpLoggingInterceptor() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "http_server"
+	folder := "interceptor"
+	name := "logging"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHttpLoggingInterceptorTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHttpAuthenticationMiddleware() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "http_server"
+	folder := "middleware"
+	name := "authentication"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHttpAuthenticationMiddlewareTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHttpCorsMiddleware() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "http_server"
+	folder := "middleware"
+	name := "cors"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHttpCorsMiddlewareTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHttpChainMiddleware() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	subfolder := "http_server"
+	folder := "middleware"
+	name := "chain"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, subfolder, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHttpChainMiddlewareTemplate(separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHttpServer() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	folder := "http_server"
+	name := "http_server"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHttpServerTemplate(separator)
 
 	err = utils.SetFileData(filepath, data)
 

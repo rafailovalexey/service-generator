@@ -37,6 +37,10 @@ func SetFileData(filepath string, data []byte) error {
 }
 
 func GetFilename(name string, extension string) string {
+	if extension == "" {
+		return name
+	}
+
 	filename := name + "." + extension
 
 	return filename
