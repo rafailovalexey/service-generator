@@ -46,11 +46,11 @@ func (f *Flags) InitializeFlags() error {
 	layers := make(map[string]bool, 100)
 
 	for _, value := range strings.Split(*layer, ",") {
+		layers[value] = false
+
 		if value == "provider" {
 			layers[value] = true
 		}
-
-		layers[value] = false
 	}
 
 	f.Layers = layers

@@ -1,19 +1,23 @@
 package main
 
 import (
-	"context"
-	"github.com/rafailovalexey/service-generator/cmd/application"
-	"log"
+	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/template"
+	"github.com/rafailovalexey/service-generator/internal/utils"
 )
 
 func main() {
-	ctx := context.Background()
+	//ctx := context.Background()
+	//
+	//a, err := application.NewApplication(ctx)
+	//
+	//if err != nil {
+	//	log.Panicf("an error occurred while starting the utils %v\n", err)
+	//}
+	//
+	//a.Run()
 
-	a, err := application.NewApplication(ctx)
+	separator := utils.GetSeparator()
 
-	if err != nil {
-		log.Panicf("an error occurred while starting the utils %v\n", err)
-	}
-
-	a.Run()
+	fmt.Printf("%s\n", string(template.GetDockerIgnore(separator)))
 }

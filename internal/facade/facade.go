@@ -5,9 +5,10 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/utils"
 	"os"
 	"path"
+	"sort"
 )
 
-func CreateInterface(layer string, name string, imports *template.Imports, methods *template.Methods) error {
+func CreateInterface(layer string, name string) error {
 	current, err := os.Getwd()
 
 	if err != nil {
@@ -39,7 +40,7 @@ func CreateInterface(layer string, name string, imports *template.Imports, metho
 		return err
 	}
 
-	data := template.GetInterfaceTemplate(separator, layer, name, imports, methods)
+	data := template.GetInterfaceTemplate(separator, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -50,7 +51,7 @@ func CreateInterface(layer string, name string, imports *template.Imports, metho
 	return nil
 }
 
-func CreateRealisationInterface(layer string, name string, imports *template.Imports, methods *template.Methods, functions *template.Functions) error {
+func CreateRealisationInterface(layer string, name string) error {
 	current, err := os.Getwd()
 
 	if err != nil {
@@ -92,7 +93,7 @@ func CreateRealisationInterface(layer string, name string, imports *template.Imp
 		return err
 	}
 
-	data := template.GetRealisationInterfaceTemplate(application, separator, kind, layer, name, imports, methods, functions)
+	data := template.GetRealisationInterfaceTemplate(application, separator, kind, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -292,11 +293,12 @@ func CreateProvider(layer string, name string) error {
 
 	available["api"] = struct{}{}
 	available["controller"] = struct{}{}
+	available["implementation"] = struct{}{}
 	available["client"] = struct{}{}
 	available["validation"] = struct{}{}
 	available["converter"] = struct{}{}
-	available["service"] = struct{}{}
 	available["repository"] = struct{}{}
+	available["service"] = struct{}{}
 
 	directory = path.Join(current, kind)
 	directories, err := utils.GetDirectories(directory)
@@ -312,6 +314,8 @@ func CreateProvider(layer string, name string) error {
 			layers = append(layers, d)
 		}
 	}
+
+	sort.Strings(layers)
 
 	data := template.GetProviderRealisationTemplate(application, separator, kind, layers, layer, name)
 
@@ -366,11 +370,12 @@ func CreateProviderInterface(layer string, name string) error {
 
 	available["api"] = struct{}{}
 	available["controller"] = struct{}{}
+	available["implementation"] = struct{}{}
 	available["client"] = struct{}{}
 	available["validation"] = struct{}{}
 	available["converter"] = struct{}{}
-	available["service"] = struct{}{}
 	available["repository"] = struct{}{}
+	available["service"] = struct{}{}
 
 	directory = path.Join(current, kind)
 	directories, err := utils.GetDirectories(directory)
@@ -387,7 +392,56 @@ func CreateProviderInterface(layer string, name string) error {
 		}
 	}
 
+	sort.Strings(layers)
+
 	data := template.GetProviderInterfaceTemplate(application, separator, kind, layers, layer, name)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateImplementation(layer string, name string) error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "internal"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(layer, extension)
+	directory := path.Join(current, kind, layer, name)
+	filepath := path.Join(current, kind, layer, name, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetImplementationRealisationTemplate(separator, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 

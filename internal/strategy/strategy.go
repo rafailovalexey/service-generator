@@ -2,7 +2,6 @@ package strategy
 
 import (
 	"github.com/rafailovalexey/service-generator/internal/facade"
-	"github.com/rafailovalexey/service-generator/internal/template"
 	"log"
 )
 
@@ -29,17 +28,13 @@ type RealisationGenerationStrategy struct{}
 var _ GenerationStrategyInterface = (*RealisationGenerationStrategy)(nil)
 
 func (r *RealisationGenerationStrategy) Generate(layer string, name string) error {
-	imports := &template.Imports{}
-	methods := &template.Methods{}
-	functions := &template.Functions{}
-
-	err := facade.CreateInterface(layer, name, imports, methods)
+	err := facade.CreateInterface(layer, name)
 
 	if err != nil {
 		return err
 	}
 
-	err = facade.CreateRealisationInterface(layer, name, imports, methods, functions)
+	err = facade.CreateRealisationInterface(layer, name)
 
 	if err != nil {
 		return err
@@ -53,17 +48,13 @@ type IncomingGenerationStrategy struct{}
 var _ GenerationStrategyInterface = (*IncomingGenerationStrategy)(nil)
 
 func (c *IncomingGenerationStrategy) Generate(layer string, name string) error {
-	imports := &template.Imports{}
-	methods := &template.Methods{}
-	functions := &template.Functions{}
-
-	err := facade.CreateInterface(layer, name, imports, methods)
+	err := facade.CreateInterface(layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateRealisationInterface(layer, name, imports, methods, functions)
+	err = facade.CreateRealisationInterface(layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
@@ -96,6 +87,20 @@ func (c *ProviderGenerationStrategy) Generate(layer string, name string) error {
 	}
 
 	err = facade.CreateProvider(layer, name)
+
+	if err != nil {
+		log.Panicf("%v\n", err)
+	}
+
+	return nil
+}
+
+type ImplementationGenerationStrategy struct{}
+
+var _ GenerationStrategyInterface = (*ImplementationGenerationStrategy)(nil)
+
+func (c *ImplementationGenerationStrategy) Generate(layer string, name string) error {
+	err := facade.CreateImplementation(layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)

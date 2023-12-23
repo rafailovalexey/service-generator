@@ -30,7 +30,7 @@ func (a *Application) Run() {
 	last := make(map[string]struct{}, 10)
 
 	for key, isNeedLast := range f.Layers {
-		if !isNeedLast {
+		if isNeedLast {
 			last[key] = struct{}{}
 
 			continue

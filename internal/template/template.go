@@ -3,238 +3,50 @@ package template
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"github.com/rafailovalexey/service-generator/internal/utils"
 )
 
-type Imports = []string
-
-type Function struct {
-	Name          string
-	ArgumentsType []string
-	ArgumentsName []string
-	Outputs       []string
-	Code          []string
-}
-
-type Functions = []Function
-
-type Method struct {
-	Name          string
-	ArgumentsType []string
-	ArgumentsName []string
-	Outputs       []string
-	Code          []string
-}
-
-type Methods = []Method
-
-func GetInterfaceTemplate(separator string, layer string, name string, imports *Imports, methods *Methods) []byte {
+func GetInterfaceTemplate(separator string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
-	if len(*methods) == 0 {
-		data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
-		data.WriteString(separator)
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", capitalize(name), capitalize(layer)))
-		data.WriteString(separator)
-	}
-
-	if len(*methods) != 0 {
-		data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		if len(*imports) != 0 {
-			data.WriteString(fmt.Sprintf("import ("))
-			data.WriteString(separator)
-
-			for _, library := range *imports {
-				data.WriteString(fmt.Sprintf("\t\"%s\"", library))
-				data.WriteString(separator)
-			}
-
-			data.WriteString(fmt.Sprintf(")"))
-			data.WriteString(separator)
-		}
-
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("type %s%sInterface interface {", capitalize(name), capitalize(layer)))
-		data.WriteString(separator)
-
-		for _, method := range *methods {
-			arguments := strings.Join(method.ArgumentsType, ", ")
-			outputs := strings.Join(method.Outputs, ", ")
-
-			if len(method.Outputs) > 1 {
-				data.WriteString(fmt.Sprintf("\t%s(%s) (%s)", method.Name, arguments, outputs))
-				data.WriteString(separator)
-			}
-
-			if len(method.Outputs) == 1 {
-				data.WriteString(fmt.Sprintf("\t%s(%s) %s", method.Name, arguments, outputs))
-				data.WriteString(separator)
-			}
-
-			if len(method.Outputs) == 0 {
-				data.WriteString(fmt.Sprintf("\t%s(%s)", method.Name, arguments))
-				data.WriteString(separator)
-			}
-		}
-
-		data.WriteString(fmt.Sprintf("}"))
-		data.WriteString(separator)
-	}
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
 
 	return data.Bytes()
 }
 
-func GetRealisationInterfaceTemplate(application string, separator string, kind string, layer string, name string, imports *Imports, methods *Methods, functions *Functions) []byte {
+func GetRealisationInterfaceTemplate(application string, separator string, kind string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, lowercase(layer)))
+	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, utils.Lowercase(layer)))
 	data.WriteString(separator)
-
-	if len(*imports) != 0 {
-		for _, library := range *imports {
-			data.WriteString(fmt.Sprintf("\t\"%s\"", library))
-			data.WriteString(separator)
-		}
-	}
-
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", capitalize(name), capitalize(layer)))
+
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+
+	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
-
-	if len(*methods) != 0 {
-		for _, method := range *methods {
-			args := make([]string, len(method.ArgumentsType))
-
-			for index, _ := range method.ArgumentsType {
-				args[index] = fmt.Sprintf("%s %s", method.ArgumentsName[index], method.ArgumentsType[index])
-			}
-
-			arguments := strings.Join(args, ", ")
-			outputs := strings.Join(method.Outputs, ", ")
-
-			data.WriteString(separator)
-
-			if len(method.Outputs) > 1 {
-				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) (%s) {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments, outputs))
-
-				data.WriteString(separator)
-
-				for _, code := range method.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			if len(method.Outputs) == 1 {
-				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) %s {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments, outputs))
-
-				data.WriteString(separator)
-
-				for _, code := range method.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			if len(method.Outputs) == 0 {
-				data.WriteString(fmt.Sprintf("func (%s *%s%s) %s(%s) {", lowercase(first(name)), capitalize(name), capitalize(layer), method.Name, arguments))
-
-				data.WriteString(separator)
-
-				for _, code := range method.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			data.WriteString(separator)
-		}
-	}
-
-	if len(*functions) != 0 {
-		for _, function := range *functions {
-			args := make([]string, len(function.ArgumentsType))
-
-			for index, _ := range function.ArgumentsType {
-				args[index] = fmt.Sprintf("%s %s", function.ArgumentsName[index], function.ArgumentsType[index])
-			}
-
-			arguments := strings.Join(args, ", ")
-			outputs := strings.Join(function.Outputs, ", ")
-
-			data.WriteString(separator)
-
-			if len(function.Outputs) > 1 {
-				data.WriteString(fmt.Sprintf("func %s(%s) (%s) {", function.Name, arguments, outputs))
-
-				data.WriteString(separator)
-
-				for _, code := range function.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			if len(function.Outputs) == 1 {
-				data.WriteString(fmt.Sprintf("func %s(%s) %s {", function.Name, arguments, outputs))
-
-				data.WriteString(separator)
-
-				for _, code := range function.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			if len(function.Outputs) == 0 {
-				data.WriteString(fmt.Sprintf("func %s(%s) {", function.Name, arguments))
-
-				data.WriteString(separator)
-
-				for _, code := range function.Code {
-					data.WriteString(fmt.Sprintf("\t%s", code))
-					data.WriteString(separator)
-				}
-
-				data.WriteString(fmt.Sprintf("}"))
-			}
-
-			data.WriteString(separator)
-		}
-
-	}
 
 	return data.Bytes()
 }
@@ -242,35 +54,35 @@ func GetRealisationInterfaceTemplate(application string, separator string, kind 
 func GetDataTransferObjectTemplate(separator string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", capitalize(singular(name)), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%s = []%s%s", capitalize(name), capitalize(layer), capitalize(singular(name)), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s = []%s%s", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", capitalize(singular(name)), capitalize(layer), capitalize(singular(name)), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", capitalize(singular(name)), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func New%s%s(%s ...%s%s) *%s%s {", capitalize(name), capitalize(layer), lowercase(name), capitalize(singular(name)), capitalize(layer), capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("func New%s%s(%s ...%s%s) *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Lowercase(name), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s := make([]%s%s, len(%s))", lowercase(layer), capitalize(singular(name)), capitalize(layer), lowercase(name)))
+	data.WriteString(fmt.Sprintf("\t%s := make([]%s%s, len(%s))", utils.Lowercase(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tfor _, %s := range %s {", lowercase(singular(name)), lowercase(name)))
+	data.WriteString(fmt.Sprintf("\tfor _, %s := range %s {", utils.Lowercase(utils.SingularForm(name)), utils.Lowercase(name)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t%s = append(%s, %s)", lowercase(layer), lowercase(layer), lowercase(singular(name))))
+	data.WriteString(fmt.Sprintf("\t\t%s = append(%s, %s)", utils.Lowercase(layer), utils.Lowercase(layer), utils.Lowercase(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s", lowercase(layer)))
+	data.WriteString(fmt.Sprintf("\treturn &%s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -281,7 +93,7 @@ func GetDataTransferObjectTemplate(separator string, layer string, name string) 
 func GetRequestTemplate(separator string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -290,7 +102,7 @@ func GetRequestTemplate(separator string, name string) []byte {
 func GetResponseTemplate(separator string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -299,7 +111,7 @@ func GetResponseTemplate(separator string, name string) []byte {
 func GetProviderInterfaceTemplate(application string, separator string, kind string, layers []string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(layer)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -307,20 +119,32 @@ func GetProviderInterfaceTemplate(application string, separator string, kind str
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
-		data.WriteString(separator)
+		switch {
+		case l == "implementation":
+			data.WriteString(fmt.Sprintf("\t\"%s/%s/%s/%s\"", application, kind, l, name))
+			data.WriteString(separator)
+		default:
+			data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
+			data.WriteString(separator)
+		}
 	}
 
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		data.WriteString(fmt.Sprintf("\tGet%s%s() %s.%s%sInterface", capitalize(name), capitalize(l), l, capitalize(name), capitalize(l)))
-		data.WriteString(separator)
+		switch {
+		case l == "implementation":
+			data.WriteString(fmt.Sprintf("\tGet%s%s() *%s.%sImplementation", utils.Capitalize(name), utils.Capitalize(l), name, utils.Capitalize(name)))
+			data.WriteString(separator)
+		default:
+			data.WriteString(fmt.Sprintf("\tGet%s%s() %s.%s%sInterface", utils.Capitalize(name), utils.Capitalize(l), l, utils.Capitalize(name), utils.Capitalize(l)))
+			data.WriteString(separator)
+		}
 	}
 
 	data.WriteString(fmt.Sprintf("}"))
@@ -332,88 +156,844 @@ func GetProviderInterfaceTemplate(application string, separator string, kind str
 func GetProviderRealisationTemplate(application string, separator string, kind string, layers []string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 
-	data.WriteString(fmt.Sprintf("package %s", lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, lowercase(layer)))
+	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", application, kind, utils.Lowercase(layer)))
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t%s%s \"%s/%s/%s/%s\"", name, capitalize(l), application, kind, l, name))
-		data.WriteString(separator)
+		switch {
+		case l == "implementation":
+			data.WriteString(fmt.Sprintf("\t\"%s/%s/implementation/%s\"", application, kind, name))
+			data.WriteString(separator)
+		default:
+			data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", application, kind, l))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\t%s%s \"%s/%s/%s/%s\"", name, utils.Capitalize(l), application, kind, l, name))
+			data.WriteString(separator)
+		}
 	}
 
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {", capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, capitalize(l), l, capitalize(name), capitalize(l)))
-		data.WriteString(separator)
+		switch {
+		case l == "implementation":
+			data.WriteString(fmt.Sprintf("\t%s%s *%s.%sImplementation", name, utils.Capitalize(l), name, utils.Capitalize(name)))
+			data.WriteString(separator)
+		default:
+			data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, utils.Capitalize(l), l, utils.Capitalize(name), utils.Capitalize(l)))
+			data.WriteString(separator)
+		}
 	}
 
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", capitalize(name), capitalize(layer), capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", capitalize(name), capitalize(layer)))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
-	data.WriteString(separator)
 
 	for _, l := range layers {
-		data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() %s.%s%sInterface {", first(layer), capitalize(name), capitalize(layer), capitalize(name), capitalize(l), l, capitalize(name), capitalize(l)))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", first(layer), name, capitalize(l)))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", first(layer), name, capitalize(l), name, capitalize(l), capitalize(name), capitalize(l)))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t}"))
-		data.WriteString(separator)
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\treturn %s.%s%s", first(layer), name, capitalize(l)))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("}"))
-		data.WriteString(separator)
+		switch {
+		case l == "implementation":
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() *%s.%sImplementation {", utils.FirstLetter(layer), utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(l), name, utils.Capitalize(name)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s.New%s%s()", utils.FirstLetter(layer), name, utils.Capitalize(l), name, utils.Capitalize(name), utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\t}"))
+			data.WriteString(separator)
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("}"))
+			data.WriteString(separator)
+		default:
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() %s.%s%sInterface {", utils.FirstLetter(layer), utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(l), l, utils.Capitalize(name), utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", utils.FirstLetter(layer), name, utils.Capitalize(l), name, utils.Capitalize(l), utils.Capitalize(name), utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\t}"))
+			data.WriteString(separator)
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(separator)
+			data.WriteString(fmt.Sprintf("}"))
+			data.WriteString(separator)
+		}
 	}
 
 	return data.Bytes()
 }
 
-func capitalize(value string) string {
-	if value == "" {
-		return value
-	}
+func GetImplementationRealisationTemplate(separator string, layer string, name string) []byte {
+	data := bytes.Buffer{}
 
-	return strings.ToUpper(value[:1]) + value[1:]
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", utils.FirstLetter(name), utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
 }
 
-func lowercase(value string) string {
-	return strings.ToLower(value)
+func GetReadmeTemplate(separator string, name string) []byte {
+	data := bytes.Buffer{}
+
+	// fmt.Sprintf("%s", name)
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
 }
 
-func singular(value string) string {
-	if value == "" {
-		return value
-	}
+func GetGitIgnoreTemplate(separator string) []byte {
+	data := bytes.Buffer{}
 
-	return value[:1] + value[1:len(value)-1]
+	//# JetBrains
+	//.idea
+	//
+	//# Build
+	//build
+	//
+	//# Environment
+	//.env
+	//
+	//# Mocks
+	//*_mock.go
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
 }
 
-func first(value string) string {
-	return value[:1]
+func GetExampleEnvironmentTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcMicroserviceMakefileTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//# Variables
+	//
+	//PROTO_SOURCE_DIRECTORY = api
+	//PROTO_OUTPUT_DIRECTORY = pkg
+	//
+	//PROTO_FILES = \
+	//	employees_v1/employees.proto
+	//
+	//MOCKS_OUTPUT_DIRECTORY = mocks
+	//
+	//MOCKS_FILES = \
+	//	internal/repository/repository.go
+	//
+	//# GRPC
+	//
+	//grpc-generate:
+	//	bin/grpc-generate.sh $(PROTO_SOURCE_DIRECTORY) $(PROTO_OUTPUT_DIRECTORY) $(PROTO_FILES)
+	//
+	//# Mocks
+	//
+	//mocks-generate:
+	//	bin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)
+	//
+	//# Generate
+	//
+	//generate:
+	//	make grpc-generate
+	//	make mocks-generate
+	//
+	//# Download
+	//
+	//download:
+	//	go mod download
+	//
+	//# Build
+	//
+	//build:
+	//	go build -o build/main main.go
+	//
+	//# Tests
+	//
+	//tests:
+	//	go test -v ./...
+	//
+	//.PHONY: grpc-generate, mocks-generate, generate, download, build, tests
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetDefaultMicroserviceMakefileTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//# Variables
+	//
+	//MOCKS_OUTPUT_DIRECTORY = mocks
+	//
+	//MOCKS_FILES = \
+	//	internal/repository/repository.go
+	//
+	//# Mocks
+	//
+	//mocks-generate:
+	//	bin/mocks-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)
+	//
+	//# Generate
+	//
+	//generate:
+	//	make mocks-generate
+	//
+	//# Download
+	//
+	//download:
+	//	go mod download
+	//
+	//# Build
+	//
+	//build:
+	//	go build -o build/main main.go
+	//
+	//# Tests
+	//
+	//tests:
+	//	go test -v ./...
+	//
+	//.PHONY: mocks-generate, generate, download, build, tests
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetDockerIgnoreTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//# JetBrains
+	//.idea
+	//
+	//# Build
+	//build
+	//
+	//# Mocks
+	//*_mock.go
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetDockerWithPortTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//FROM golang:latest
+	//
+	//WORKDIR /usr/local/application
+	//
+	//COPY . .
+	//
+	//RUN apt-get update --yes
+	//RUN apt-get upgrade --yes
+	//
+	//RUN apt-get install --yes make
+	//
+	//RUN export PATH="$PATH:$(go env GOPATH)/bin"
+	//
+	//RUN make download
+	//RUN make build
+	//
+	//EXPOSE 3000
+	//
+	//CMD ["./build/main"]
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetDockerWithoutPortTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//FROM golang:latest
+	//
+	//WORKDIR /usr/local/application
+	//
+	//COPY . .
+	//
+	//RUN apt-get update --yes
+	//RUN apt-get upgrade --yes
+	//
+	//RUN apt-get install --yes make
+	//
+	//RUN export PATH="$PATH:$(go env GOPATH)/bin"
+	//
+	//RUN make download
+	//RUN make build
+	//
+	//CMD ["./build/main"]
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcGenerateShellScriptTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//#!/bin/bash
+	//
+	//if [ "$#" -lt 2 ]; then
+	//echo "Usage: $0 <PROTO_SOURCE_DIRECTORY> <PROTO_OUTPUT_DIRECTORY> <PROTO_FILES>"
+	//exit 1
+	//fi
+	//
+	//PROTO_SOURCE_DIRECTORY="$1"
+	//PROTO_OUTPUT_DIRECTORY="$2"
+	//PROTO_FILES="${*:3}"
+	//
+	//for proto_file in $PROTO_FILES; do
+	//
+	//PROTO_FILE_DIRECTORY=$(dirname "$proto_file")
+	//
+	//mkdir -p "$PROTO_OUTPUT_DIRECTORY/$PROTO_FILE_DIRECTORY"
+	//
+	//echo "Generating proto file for $proto_file..."
+	//
+	//protoc \
+	//--proto_path="$PROTO_SOURCE_DIRECTORY" \
+	//--go_out="$PROTO_OUTPUT_DIRECTORY" \
+	//--go_opt=paths=source_relative "$proto_file" \
+	//--go-grpc_out="$PROTO_OUTPUT_DIRECTORY" \
+	//--go-grpc_opt=paths=source_relative "$proto_file"
+	//
+	//done
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetMockGenerateShellScriptTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//#!/bin/bash
+	//
+	//if [ "$#" -lt 1 ]; then
+	//echo "Usage: $0 <MOCKS_OUTPUT_DIRECTORY> <MOCKS_FILES>"
+	//exit 1
+	//fi
+	//
+	//MOCKS_OUTPUT_DIRECTORY="$1"
+	//MOCKS_FILES="${*:2}"
+	//
+	//for mock_file in $MOCKS_FILES; do
+	//
+	//DIRECTORY=$(dirname "$mock_file")
+	//FILENAME=$(basename "$mock_file")
+	//
+	//EXTENSION="${FILENAME##*.}"
+	//FILENAME_WITHOUT_EXTENSIONS="${FILENAME%.*}"
+	//
+	//OUTPUT_PATH="$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY/${FILENAME_WITHOUT_EXTENSIONS}_mock.$EXTENSION"
+	//
+	//mkdir -p "$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY"
+	//
+	//echo "Generating mock file for $mock_file..."
+	//
+	//mockgen -source="$mock_file" -destination="$OUTPUT_PATH"
+	//
+	//done
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcLoggingInterceptorTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package interceptor
+	//
+	//import (
+	//	"context"
+	//"google.golang.org/grpc"
+	//"google.golang.org/grpc/codes"
+	//"google.golang.org/grpc/metadata"
+	//"google.golang.org/grpc/status"
+	//"log"
+	//)
+	//
+	//func LoggingInterceptor() grpc.UnaryServerInterceptor {
+	//	return func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	//	md, isExist := metadata.FromIncomingContext(ctx)
+	//
+	//	if !isExist {
+	//	return nil, status.Errorf(codes.Internal, "failed to read metadata")
+	//}
+	//
+	//	tracecode := md["tracecode"][0]
+	//
+	//	log.Printf("incoming grpc request: %s (%s)", info.FullMethod, tracecode)
+	//
+	//	response, err := handler(ctx, request)
+	//
+	//	if err != nil {
+	//	log.Printf("error in grpc request %s (%s) \n %v", info.FullMethod, tracecode, err)
+	//}
+	//
+	//	if err == nil {
+	//	log.Printf("outgoing grpc response %s (%s)", info.FullMethod, tracecode)
+	//}
+	//
+	//	return response, err
+	//}
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcTraceCodeInterceptorTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package interceptor
+	//
+	//import (
+	//	"context"
+	//"crypto/rand"
+	//"encoding/hex"
+	//"google.golang.org/grpc"
+	//"google.golang.org/grpc/codes"
+	//"google.golang.org/grpc/metadata"
+	//"google.golang.org/grpc/status"
+	//"log"
+	//)
+	//
+	//func TracecodeInterceptor() grpc.UnaryServerInterceptor {
+	//	return func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	//	md, isExist := metadata.FromIncomingContext(ctx)
+	//
+	//	if !isExist {
+	//	log.Printf("metadata not found in the request context\n")
+	//
+	//	return nil, status.Errorf(codes.Internal, "failed to read metadata")
+	//}
+	//
+	//	if len(md["tracecode"]) != 0 {
+	//	return handler(ctx, request)
+	//}
+	//
+	//	tracecode, err := generateTracecode()
+	//
+	//	if err != nil {
+	//	return nil, status.Errorf(codes.Internal, "failed to generate tracecode")
+	//}
+	//
+	//	md = metadata.Join(md, metadata.New(map[string]string{"tracecode": tracecode}))
+	//	ctx = metadata.NewIncomingContext(ctx, md)
+	//
+	//	return handler(ctx, request)
+	//}
+	//}
+	//
+	//func generateTracecode() (string, error) {
+	//	tracecode := make([]byte, 16)
+	//
+	//	if _, err := rand.Read(tracecode); err != nil {
+	//		return "", err
+	//	}
+	//
+	//	return hex.EncodeToString(tracecode), nil
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcAuthenticationMiddlewareTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package middleware
+	//
+	//import (
+	//	"context"
+	//"google.golang.org/grpc"
+	//"google.golang.org/grpc/codes"
+	//"google.golang.org/grpc/metadata"
+	//"google.golang.org/grpc/status"
+	//"log"
+	//"os"
+	//)
+	//
+	//func AuthenticationTokenMiddleware() grpc.UnaryServerInterceptor {
+	//	return func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	//	md, isExist := metadata.FromIncomingContext(ctx)
+	//
+	//	if !isExist {
+	//	return nil, status.Errorf(codes.Unauthenticated, "authentication token not found")
+	//}
+	//
+	//	header := os.Getenv("AUTHENTICATION_TOKEN_HEADER")
+	//
+	//	if header == "" {
+	//	log.Panicf("not found authentication token header in environment")
+	//}
+	//
+	//	list := md[header]
+	//
+	//	if len(list) == 0 {
+	//	return nil, status.Errorf(codes.Unauthenticated, "authentication token not found")
+	//}
+	//
+	//	key := list[0]
+	//
+	//	token := os.Getenv("AUTHENTICATION_TOKEN")
+	//
+	//	if token == "" {
+	//	log.Panicf("not found authentication token in environment")
+	//}
+	//
+	//	if token != key {
+	//	log.Printf("invalid authentication token: %s", key)
+	//
+	//	return nil, status.Errorf(codes.PermissionDenied, "invalid authentication token")
+	//}
+	//
+	//	return handler(ctx, request)
+	//}
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcServerTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package grpc_server
+	//
+	//import (
+	//	"fmt"
+	//interceptor "github.com/emptyhopes/employees/cmd/grpc_server/intereptor"
+	//"github.com/emptyhopes/employees/cmd/grpc_server/middleware"
+	//"github.com/emptyhopes/employees/pkg/employees_v1"
+	//"google.golang.org/grpc"
+	//"google.golang.org/grpc/reflection"
+	//"log"
+	//"net"
+	//"os"
+	//)
+	//
+	//func Run(api employees_v1.EmployeesV1Server) {
+	//	hostname := os.Getenv("HOSTNAME")
+	//
+	//	port := os.Getenv("PORT")
+	//
+	//	if port == "" {
+	//		log.Panicf("specify the port")
+	//	}
+	//
+	//	address := fmt.Sprintf("%s:%s", hostname, port)
+	//
+	//	log.Printf("%s\n", fmt.Sprintf("grpc server starts at address %s", address))
+	//
+	//	listener, err := net.Listen("tcp", address)
+	//
+	//	if err != nil {
+	//		log.Panicf("grpc server startup error %v", err)
+	//	}
+	//
+	//	server := grpc.NewServer(
+	//		grpc.ChainUnaryInterceptor(
+	//			interceptor.TracecodeInterceptor(),
+	//			interceptor.LoggingInterceptor(),
+	//			middleware.AuthenticationTokenMiddleware(),
+	//		),
+	//	)
+	//
+	//	reflection.Register(server)
+	//
+	//	employees_v1.RegisterEmployeesV1Server(server, api)
+	//
+	//	log.Printf("%s\n", fmt.Sprintf("grpc server is running at %s", address))
+	//
+	//	err = server.Serve(listener)
+	//
+	//	if err != nil {
+	//		log.Panicf("grpc server startup error %v", err)
+	//	}
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpLoggingInterceptorTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package interceptor
+	//
+	//import (
+	//	"log"
+	//"net/http"
+	//"time"
+	//)
+	//
+	//func LoggingInterceptor(next http.Handler) http.Handler {
+	//	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+	//	start := time.Now()
+	//
+	//	next.ServeHTTP(response, request)
+	//
+	//	duration := time.Since(start)
+	//
+	//	log.Printf("%s %s %s - %s %v\n", request.Method, request.URL.Path, request.RemoteAddr, request.UserAgent(), duration)
+	//})
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpAuthenticationMiddlewareTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package middleware
+	//
+	//import (
+	//	"encoding/json"
+	//"log"
+	//"net/http"
+	//"os"
+	//)
+	//
+	//func AuthenticationMiddleware(next http.Handler) http.Handler {
+	//	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+	//	header := os.Getenv("AUTHENTICATION_TOKEN_HEADER")
+	//
+	//	if header == "" {
+	//	log.Panicf("specify the name of the authentication token")
+	//}
+	//
+	//	token := os.Getenv("AUTHENTICATION_TOKEN")
+	//
+	//	if token == "" {
+	//	log.Panicf("specify the value of the authentication token")
+	//}
+	//
+	//	key := request.Header.Get(header)
+	//
+	//	if key != token {
+	//	response.Header().Set("Content-Type", "application/json")
+	//	response.WriteHeader(http.StatusUnauthorized)
+	//	response.Write(getErrorInJson("unauthorized"))
+	//
+	//	return
+	//}
+	//
+	//	next.ServeHTTP(response, request)
+	//})
+	//}
+	//
+	//func getErrorInJson(message string) []byte {
+	//	type ErrorStruct struct {
+	//	Error string `json:"error"`
+	//}
+	//
+	//	errorStruct := &ErrorStruct{
+	//	Error: message,
+	//}
+	//
+	//	errJson, err := json.Marshal(errorStruct)
+	//
+	//	if err != nil {
+	//	return []byte(err.Error())
+	//}
+	//
+	//	return errJson
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpCorsMiddlewareTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package middleware
+	//
+	//import (
+	//	"net/http"
+	//)
+	//
+	//func CorsMiddleware(next http.Handler) http.Handler {
+	//	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+	//	response.Header().Add("Access-Control-Allow-Origin", "*")
+	//	response.Header().Add("Access-Control-Allow-Headers", "*")
+	//	response.Header().Add("Access-Control-Allow-Methods", "*")
+	//	response.Header().Add("Access-Control-Allow-Credentials", "true")
+	//
+	//	if request.Method == "OPTIONS" {
+	//	response.WriteHeader(http.StatusOK)
+	//
+	//	return
+	//}
+	//
+	//	next.ServeHTTP(response, request)
+	//})
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpChainMiddlewareTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package middleware
+	//
+	//import (
+	//	"net/http"
+	//)
+	//
+	//func ChainMiddleware(middlewares ...func(http.Handler) http.Handler) func(http.Handler) http.Handler {
+	//	return func(next http.Handler) http.Handler {
+	//		for index := len(middlewares) - 1; index >= 0; index-- {
+	//			next = middlewares[index](next)
+	//		}
+	//
+	//		return next
+	//	}
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpServerTemplate(separator string) []byte {
+	data := bytes.Buffer{}
+
+	//package http_server
+	//
+	//import (
+	//	"fmt"
+	//"github.com/emptyhopes/employees_proxy/cmd/http_server/interceptor"
+	//"github.com/emptyhopes/employees_proxy/cmd/http_server/middleware"
+	//"github.com/emptyhopes/employees_proxy/internal/api"
+	//"github.com/gorilla/mux"
+	//"log"
+	//"net/http"
+	//"os"
+	//)
+	//
+	//func Run(employeeApi api.InterfaceEmployeeApi) {
+	//	router := mux.NewRouter()
+	//
+	//	middlewares := middleware.ChainMiddleware(
+	//		interceptor.LoggingInterceptor,
+	//		middleware.CorsMiddleware,
+	//		middleware.AuthenticationMiddleware,
+	//	)
+	//
+	//	router.Use(middlewares)
+	//
+	//	router.NotFoundHandler = http.HandlerFunc(employeeApi.NotFound)
+	//	router.MethodNotAllowedHandler = http.HandlerFunc(employeeApi.MethodNotAllowed)
+	//
+	//	router.HandleFunc("/v1/employees/{id:[a-zA-Z0-9-]+}", employeeApi.GetEmployeeById).Methods("GET")
+	//	router.HandleFunc("/v1/employees", employeeApi.CreateEmployee).Methods("POST")
+	//
+	//	hostname := os.Getenv("HOSTNAME")
+	//
+	//	port := os.Getenv("PORT")
+	//
+	//	if port == "" {
+	//		log.Panicf("specify the port")
+	//	}
+	//
+	//	address := fmt.Sprintf("%s:%s", hostname, port)
+	//
+	//	log.Printf("http server starts at address %s\n", address)
+	//
+	//	err := http.ListenAndServe(address, router)
+	//
+	//	if err != nil {
+	//		log.Panicf("error when starting the grpc server %v\n", err)
+	//	}
+	//}
+
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	return data.Bytes()
 }

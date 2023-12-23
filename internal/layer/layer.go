@@ -58,8 +58,9 @@ func GetDictionary() map[string]strategy.GenerationStrategyInterface {
 
 	dictionary["provider"] = &strategy.ProviderGenerationStrategy{}
 
+	dictionary["implementation"] = &strategy.ImplementationGenerationStrategy{}
+
 	// handler
-	// implementation
 
 	dictionary["service"] = &strategy.RealisationGenerationStrategy{}
 	dictionary["repository"] = &strategy.RealisationGenerationStrategy{}
