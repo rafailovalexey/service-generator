@@ -972,7 +972,7 @@ func CreateGrpcLoggingInterceptor() error {
 	return nil
 }
 
-func CreateGrpcTraceCodeInterceptor() error {
+func CreateGrpcTracingInterceptor() error {
 	current, err := os.Getwd()
 
 	if err != nil {
@@ -984,7 +984,7 @@ func CreateGrpcTraceCodeInterceptor() error {
 	kind := "cmd"
 	subfolder := "grpc_server"
 	folder := "interceptor"
-	name := "trace_code"
+	name := "tracing"
 	extension := "go"
 
 	if err != nil {
@@ -1011,7 +1011,7 @@ func CreateGrpcTraceCodeInterceptor() error {
 		return err
 	}
 
-	data := template.GetGrpcTraceCodeInterceptorTemplate(separator)
+	data := template.GetGrpcTracingInterceptorTemplate(separator)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1079,6 +1079,12 @@ func CreateGrpcServer() error {
 		return err
 	}
 
+	application, err := utils.GetApplicationName()
+
+	if err != nil {
+		return err
+	}
+
 	separator := utils.GetSeparator()
 
 	kind := "cmd"
@@ -1110,7 +1116,7 @@ func CreateGrpcServer() error {
 		return err
 	}
 
-	data := template.GetGrpcServerTemplate(separator)
+	data := template.GetGrpcServerTemplate(application, separator)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1328,6 +1334,12 @@ func CreateHttpServer() error {
 		return err
 	}
 
+	application, err := utils.GetApplicationName()
+
+	if err != nil {
+		return err
+	}
+
 	separator := utils.GetSeparator()
 
 	kind := "cmd"
@@ -1359,7 +1371,7 @@ func CreateHttpServer() error {
 		return err
 	}
 
-	data := template.GetHttpServerTemplate(separator)
+	data := template.GetHttpServerTemplate(application, separator)
 
 	err = utils.SetFileData(filepath, data)
 

@@ -30,10 +30,8 @@ func GetApplicationName() (string, error) {
 		return "", err
 	}
 
-	separator := GetSeparator()
-
-	temporary := strings.Split(string(read), separator)[0]
-	module := strings.Split(temporary, " ")[1]
+	temporary := strings.Split(read, " ")[1]
+	module := strings.Split(temporary, "\n")[0]
 
 	return module, nil
 }
