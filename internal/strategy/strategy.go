@@ -273,7 +273,7 @@ func GenerateHttpApplication(wd string, module string, version string, applicati
 		return err
 	}
 
-	err = facade.CreateHttpAuthenticationMiddleware(wd)
+	err = facade.CreateHttpAuthenticationMiddleware(wd, module)
 
 	if err != nil {
 		return err

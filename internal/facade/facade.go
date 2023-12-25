@@ -913,7 +913,7 @@ func CreateHttpLoggingInterceptor(wd string) error {
 	return nil
 }
 
-func CreateHttpAuthenticationMiddleware(wd string) error {
+func CreateHttpAuthenticationMiddleware(wd string, module string) error {
 	directory := path.Join(wd, "cmd", "http_server", "middleware")
 	filename := utils.GetFilename("authentication", "go")
 	filepath := path.Join(directory, filename)
@@ -934,7 +934,7 @@ func CreateHttpAuthenticationMiddleware(wd string) error {
 		return err
 	}
 
-	data := template.GetHttpAuthenticationMiddlewareTemplate()
+	data := template.GetHttpAuthenticationMiddlewareTemplate(module)
 
 	err = utils.SetFileData(filepath, data)
 
