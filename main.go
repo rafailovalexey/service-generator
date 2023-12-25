@@ -32,4 +32,5 @@ func main() {
 	_ = facade.CreateHttpCorsMiddleware()
 	_ = facade.CreateHttpChainMiddleware()
 	_ = facade.CreateHttpServer()
+	_ = facade.CreateApplication("application", "employees", "http_server")
 }

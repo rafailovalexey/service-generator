@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func GetApplicationName() (string, error) {
+func GetModuleName() (string, error) {
 	current, err := os.Getwd()
 
 	if err != nil {

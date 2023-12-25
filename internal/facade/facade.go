@@ -58,7 +58,7 @@ func CreateRealisationInterface(layer string, name string) error {
 		return err
 	}
 
-	application, err := utils.GetApplicationName()
+	module, err := utils.GetModuleName()
 
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func CreateRealisationInterface(layer string, name string) error {
 		return err
 	}
 
-	data := template.GetRealisationInterfaceTemplate(application, separator, kind, layer, name)
+	data := template.GetRealisationInterfaceTemplate(module, separator, kind, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -254,7 +254,7 @@ func CreateProvider(layer string, name string) error {
 		return err
 	}
 
-	application, err := utils.GetApplicationName()
+	module, err := utils.GetModuleName()
 
 	if err != nil {
 		return err
@@ -317,7 +317,7 @@ func CreateProvider(layer string, name string) error {
 
 	sort.Strings(layers)
 
-	data := template.GetProviderRealisationTemplate(application, separator, kind, layers, layer, name)
+	data := template.GetProviderRealisationTemplate(module, separator, kind, layers, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -335,7 +335,7 @@ func CreateProviderInterface(layer string, name string) error {
 		return err
 	}
 
-	application, err := utils.GetApplicationName()
+	module, err := utils.GetModuleName()
 
 	if err != nil {
 		return err
@@ -394,7 +394,7 @@ func CreateProviderInterface(layer string, name string) error {
 
 	sort.Strings(layers)
 
-	data := template.GetProviderInterfaceTemplate(application, separator, kind, layers, layer, name)
+	data := template.GetProviderInterfaceTemplate(module, separator, kind, layers, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -551,8 +551,6 @@ func CreateExampleEnvironment() error {
 		return err
 	}
 
-	separator := utils.GetSeparator()
-
 	name := ".example"
 	extension := "env"
 
@@ -580,7 +578,7 @@ func CreateExampleEnvironment() error {
 		return err
 	}
 
-	data := template.GetExampleEnvironmentTemplate(separator)
+	data := template.GetExampleEnvironmentTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1079,7 +1077,7 @@ func CreateGrpcServer() error {
 		return err
 	}
 
-	application, err := utils.GetApplicationName()
+	module, err := utils.GetModuleName()
 
 	if err != nil {
 		return err
@@ -1116,7 +1114,7 @@ func CreateGrpcServer() error {
 		return err
 	}
 
-	data := template.GetGrpcServerTemplate(application, separator)
+	data := template.GetGrpcServerTemplate(module, separator)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1334,7 +1332,7 @@ func CreateHttpServer() error {
 		return err
 	}
 
-	application, err := utils.GetApplicationName()
+	module, err := utils.GetModuleName()
 
 	if err != nil {
 		return err
@@ -1371,7 +1369,109 @@ func CreateHttpServer() error {
 		return err
 	}
 
-	data := template.GetHttpServerTemplate(application, separator)
+	data := template.GetHttpServerTemplate(module, separator)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateApplication(application string, name string, implementing string) error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	module, err := utils.GetModuleName()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(implementing, extension)
+	directory := path.Join(current, "test12345", kind, implementing)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetApplicationTemplate(application, module, separator, name, implementing)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateNatsSubscriber() error {
+	current, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	separator := utils.GetSeparator()
+
+	kind := "cmd"
+	folder := "nats_subscriber"
+	name := "nats_subscriber"
+	extension := "go"
+
+	if err != nil {
+		return err
+	}
+
+	filename := utils.GetFilename(name, extension)
+	directory := path.Join(current, "test12345", kind, folder)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err = utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetNatsSubscriberTemplate(separator)
 
 	err = utils.SetFileData(filepath, data)
 
