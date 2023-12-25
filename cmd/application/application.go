@@ -36,7 +36,7 @@ func (a *Application) Run() {
 			continue
 		}
 
-		isExist := l.IsExist(key)
+		isExist := l.IsExistLayer(key)
 
 		if !isExist {
 			log.Panicf("layer not found\n")
@@ -56,7 +56,7 @@ func (a *Application) Run() {
 	}
 
 	for key, _ := range last {
-		isExist := l.IsExist(key)
+		isExist := l.IsExistLayer(key)
 
 		if !isExist {
 			log.Panicf("layer not found\n")

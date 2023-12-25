@@ -16,8 +16,8 @@ func main() {
 	//}
 	//
 	//a.Run()
-	wd, _ := utils.GetWorkDirectory()
 
+	wd, _ := utils.GetWorkDirectory()
 	wd = path.Join(wd, "test12345")
 
 	_ = facade.CreateReadme(wd)
@@ -36,6 +36,7 @@ func main() {
 	_ = facade.CreateProviderInterface(wd, "employees")
 	_ = facade.CreateImplementation(wd, "employees")
 	_ = facade.CreateApplication(wd, "application", "employees", "grpc_server")
+
 	//_ = facade.CreateDefaultMicroserviceMakefile()
 	//_ = facade.CreateDockerWithoutPort()
 	//_ = facade.CreateHttpLoggingInterceptor()

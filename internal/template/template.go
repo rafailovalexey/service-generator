@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/utils"
 )
 
-func GetInterfaceTemplate(layer string, name string) ([]byte, error) {
+func GetInterfaceTemplate(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -16,17 +16,12 @@ func GetInterfaceTemplate(layer string, name string) ([]byte, error) {
 	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetRealisationInterfaceTemplate(kind string, layer string, name string) ([]byte, error) {
+func GetRealisationInterfaceTemplate(module string, kind string, layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
@@ -55,10 +50,10 @@ func GetRealisationInterfaceTemplate(kind string, layer string, name string) ([]
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetDataTransferObjectTemplate(layer string, name string) ([]byte, error) {
+func GetDataTransferObjectTemplate(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -95,37 +90,32 @@ func GetDataTransferObjectTemplate(layer string, name string) ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetRequestTemplate(name string) ([]byte, error) {
+func GetRequestTemplate(name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetResponseTemplate(name string) ([]byte, error) {
+func GetResponseTemplate(name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetProviderInterfaceTemplate(kind string, layer string, name string, layers []string) ([]byte, error) {
+func GetProviderInterfaceTemplate(module string, kind string, layer string, name string, layers []string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
 	data.WriteString(separator)
@@ -174,17 +164,12 @@ func GetProviderInterfaceTemplate(kind string, layer string, name string, layers
 		data.WriteString(separator)
 	}
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetProviderRealisationTemplate(kind string, layer string, name string, layers []string) ([]byte, error) {
+func GetProviderRealisationTemplate(module string, kind string, layer string, name string, layers []string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
@@ -277,10 +262,10 @@ func GetProviderRealisationTemplate(kind string, layer string, name string, laye
 		}
 	}
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetImplementationRealisationTemplate(layer string, name string) ([]byte, error) {
+func GetImplementationRealisationTemplate(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -307,16 +292,16 @@ func GetImplementationRealisationTemplate(layer string, name string) ([]byte, er
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetReadmeTemplate() ([]byte, error) {
+func GetReadmeTemplate() []byte {
 	data := bytes.Buffer{}
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGitIgnoreTemplate() ([]byte, error) {
+func GetGitIgnoreTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -351,16 +336,16 @@ func GetGitIgnoreTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("*_mock.go"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetExampleEnvironmentTemplate() ([]byte, error) {
+func GetExampleEnvironmentTemplate() []byte {
 	data := bytes.Buffer{}
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcMicroserviceMakefileTemplate() ([]byte, error) {
+func GetGrpcMicroserviceMakefileTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -434,10 +419,10 @@ func GetGrpcMicroserviceMakefileTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mocks-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetDefaultMicroserviceMakefileTemplate() ([]byte, error) {
+func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -493,10 +478,10 @@ func GetDefaultMicroserviceMakefileTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf(".PHONY: mocks-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetDockerIgnoreTemplate() ([]byte, error) {
+func GetDockerIgnoreTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -523,10 +508,10 @@ func GetDockerIgnoreTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("*_mock.go"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetDockerWithPortTemplate() ([]byte, error) {
+func GetDockerWithPortTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -561,10 +546,10 @@ func GetDockerWithPortTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetDockerWithoutPortTemplate() ([]byte, error) {
+func GetDockerWithoutPortTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -596,10 +581,10 @@ func GetDockerWithoutPortTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcGenerateShellScriptTemplate() ([]byte, error) {
+func GetGrpcGenerateShellScriptTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -648,10 +633,10 @@ func GetGrpcGenerateShellScriptTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("done"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetMockGenerateShellScriptTemplate() ([]byte, error) {
+func GetMockGenerateShellScriptTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -697,10 +682,10 @@ func GetMockGenerateShellScriptTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("done"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcLoggingInterceptorTemplate() ([]byte, error) {
+func GetGrpcLoggingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -768,10 +753,10 @@ func GetGrpcLoggingInterceptorTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcTracingInterceptorTemplate() ([]byte, error) {
+func GetGrpcTracingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -862,10 +847,10 @@ func GetGrpcTracingInterceptorTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcAuthenticationMiddlewareTemplate() ([]byte, error) {
+func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -955,17 +940,12 @@ func GetGrpcAuthenticationMiddlewareTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetGrpcServerTemplate() ([]byte, error) {
+func GetGrpcServerTemplate(module string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package grpc_server"))
 	data.WriteString(separator)
@@ -1054,10 +1034,10 @@ func GetGrpcServerTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetHttpLoggingInterceptorTemplate() ([]byte, error) {
+func GetHttpLoggingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1095,10 +1075,10 @@ func GetHttpLoggingInterceptorTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetHttpAuthenticationMiddlewareTemplate() ([]byte, error) {
+func GetHttpAuthenticationMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1197,10 +1177,10 @@ func GetHttpAuthenticationMiddlewareTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetHttpCorsMiddlewareTemplate() ([]byte, error) {
+func GetHttpCorsMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1244,10 +1224,10 @@ func GetHttpCorsMiddlewareTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetHttpChainMiddlewareTemplate() ([]byte, error) {
+func GetHttpChainMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1279,17 +1259,12 @@ func GetHttpChainMiddlewareTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetHttpServerTemplate() ([]byte, error) {
+func GetHttpServerTemplate(module string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package http_server"))
 	data.WriteString(separator)
@@ -1395,17 +1370,12 @@ func GetHttpServerTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetApplicationTemplate(application string, name string, implementing string) ([]byte, error) {
+func GetApplicationTemplate(module string, application string, name string, implementing string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-	module, err := utils.GetModuleName()
-
-	if err != nil {
-		return []byte(""), err
-	}
 
 	data.WriteString(fmt.Sprintf("package %s", application))
 	data.WriteString(separator)
@@ -1532,10 +1502,10 @@ func GetApplicationTemplate(application string, name string, implementing string
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }
 
-func GetNatsSubscriberTemplate() ([]byte, error) {
+func GetNatsSubscriberTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1632,5 +1602,5 @@ func GetNatsSubscriberTemplate() ([]byte, error) {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
-	return data.Bytes(), nil
+	return data.Bytes()
 }

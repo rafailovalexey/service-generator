@@ -7,7 +7,7 @@ import (
 )
 
 type LayerInterface interface {
-	IsExist(string) bool
+	IsExistLayer(string) bool
 	GetLayer(string) (strategy.GenerationStrategyInterface, error)
 }
 
@@ -27,7 +27,7 @@ func NewLayer() *Layer {
 	}
 }
 
-func (l *Layer) IsExist(value string) bool {
+func (l *Layer) IsExistLayer(value string) bool {
 	l.rwmutex.RLock()
 	defer l.rwmutex.RUnlock()
 
@@ -59,8 +59,6 @@ func GetDictionary() map[string]strategy.GenerationStrategyInterface {
 	dictionary["provider"] = &strategy.ProviderGenerationStrategy{}
 
 	dictionary["implementation"] = &strategy.ImplementationGenerationStrategy{}
-
-	// handler
 
 	dictionary["service"] = &strategy.RealisationGenerationStrategy{}
 	dictionary["repository"] = &strategy.RealisationGenerationStrategy{}

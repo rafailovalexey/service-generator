@@ -31,11 +31,7 @@ func CreateInterface(wd string, layer string, name string) error {
 		return err
 	}
 
-	data, err := template.GetInterfaceTemplate(layer, name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetInterfaceTemplate(layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -46,7 +42,7 @@ func CreateInterface(wd string, layer string, name string) error {
 	return nil
 }
 
-func CreateRealisationInterface(wd string, layer string, name string) error {
+func CreateRealisationInterface(wd string, module string, layer string, name string) error {
 	kind := "internal"
 	extension := "go"
 
@@ -70,11 +66,7 @@ func CreateRealisationInterface(wd string, layer string, name string) error {
 		return err
 	}
 
-	data, err := template.GetRealisationInterfaceTemplate(kind, layer, name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetRealisationInterfaceTemplate(module, kind, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -109,11 +101,7 @@ func CreateDataTransferObject(wd string, layer string, name string) error {
 		return err
 	}
 
-	data, err := template.GetDataTransferObjectTemplate(layer, name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetDataTransferObjectTemplate(layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -149,11 +137,7 @@ func CreateRequestObject(wd string, layer string, name string) error {
 		return err
 	}
 
-	data, err := template.GetRequestTemplate(name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetRequestTemplate(name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -189,11 +173,7 @@ func CreateResponseObject(wd string, layer string, name string) error {
 		return err
 	}
 
-	data, err := template.GetResponseTemplate(name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetResponseTemplate(name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -204,7 +184,7 @@ func CreateResponseObject(wd string, layer string, name string) error {
 	return nil
 }
 
-func CreateProvider(wd string, name string) error {
+func CreateProvider(wd string, module string, name string) error {
 	layer := "provider"
 	kind := "internal"
 	extension := "go"
@@ -257,11 +237,7 @@ func CreateProvider(wd string, name string) error {
 
 	sort.Strings(layers)
 
-	data, err := template.GetProviderRealisationTemplate(kind, layer, name, layers)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetProviderRealisationTemplate(module, kind, layer, name, layers)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -272,7 +248,7 @@ func CreateProvider(wd string, name string) error {
 	return nil
 }
 
-func CreateProviderInterface(wd string, name string) error {
+func CreateProviderInterface(wd string, module string, name string) error {
 	layer := "provider"
 	kind := "internal"
 	extension := "go"
@@ -325,11 +301,7 @@ func CreateProviderInterface(wd string, name string) error {
 
 	sort.Strings(layers)
 
-	data, err := template.GetProviderInterfaceTemplate(kind, layer, name, layers)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetProviderInterfaceTemplate(module, kind, layer, name, layers)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -365,11 +337,7 @@ func CreateImplementation(wd string, name string) error {
 		return err
 	}
 
-	data, err := template.GetImplementationRealisationTemplate(layer, name)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetImplementationRealisationTemplate(layer, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -404,11 +372,7 @@ func CreateReadme(wd string) error {
 		return err
 	}
 
-	data, err := template.GetReadmeTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetReadmeTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -443,11 +407,7 @@ func CreateGitIgnore(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGitIgnoreTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGitIgnoreTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -482,11 +442,7 @@ func CreateExampleEnvironment(wd string) error {
 		return err
 	}
 
-	data, err := template.GetExampleEnvironmentTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetExampleEnvironmentTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -521,11 +477,7 @@ func CreateGrpcMicroserviceMakefile(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcMicroserviceMakefileTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcMicroserviceMakefileTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -560,11 +512,7 @@ func CreateDefaultMicroserviceMakefile(wd string) error {
 		return err
 	}
 
-	data, err := template.GetDefaultMicroserviceMakefileTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetDefaultMicroserviceMakefileTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -599,11 +547,7 @@ func CreateDockerIgnore(wd string) error {
 		return err
 	}
 
-	data, err := template.GetDockerIgnoreTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetDockerIgnoreTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -638,11 +582,7 @@ func CreateDockerWithPort(wd string) error {
 		return err
 	}
 
-	data, err := template.GetDockerWithPortTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetDockerWithPortTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -677,11 +617,7 @@ func CreateDockerWithoutPort(wd string) error {
 		return err
 	}
 
-	data, err := template.GetDockerWithoutPortTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetDockerWithoutPortTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -717,11 +653,7 @@ func CreateGrpcGenerateShellScript(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcGenerateShellScriptTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcGenerateShellScriptTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -757,11 +689,7 @@ func CreateMockGenerateShellScript(wd string) error {
 		return err
 	}
 
-	data, err := template.GetMockGenerateShellScriptTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetMockGenerateShellScriptTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -799,11 +727,7 @@ func CreateGrpcLoggingInterceptor(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcLoggingInterceptorTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcLoggingInterceptorTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -841,11 +765,7 @@ func CreateGrpcTracingInterceptor(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcTracingInterceptorTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcTracingInterceptorTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -883,11 +803,7 @@ func CreateGrpcAuthenticationMiddleware(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcAuthenticationMiddlewareTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcAuthenticationMiddlewareTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -898,7 +814,7 @@ func CreateGrpcAuthenticationMiddleware(wd string) error {
 	return nil
 }
 
-func CreateGrpcServer(wd string) error {
+func CreateGrpcServer(wd string, module string) error {
 	kind := "cmd"
 	subfolder := "grpc_server"
 	name := "grpc_server"
@@ -924,11 +840,7 @@ func CreateGrpcServer(wd string) error {
 		return err
 	}
 
-	data, err := template.GetGrpcServerTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetGrpcServerTemplate(module)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -966,11 +878,7 @@ func CreateHttpLoggingInterceptor(wd string) error {
 		return err
 	}
 
-	data, err := template.GetHttpLoggingInterceptorTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetHttpLoggingInterceptorTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1008,11 +916,7 @@ func CreateHttpAuthenticationMiddleware(wd string) error {
 		return err
 	}
 
-	data, err := template.GetHttpAuthenticationMiddlewareTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetHttpAuthenticationMiddlewareTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1050,11 +954,7 @@ func CreateHttpCorsMiddleware(wd string) error {
 		return err
 	}
 
-	data, err := template.GetHttpCorsMiddlewareTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetHttpCorsMiddlewareTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1092,11 +992,7 @@ func CreateHttpChainMiddleware(wd string) error {
 		return err
 	}
 
-	data, err := template.GetHttpChainMiddlewareTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetHttpChainMiddlewareTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1107,7 +1003,7 @@ func CreateHttpChainMiddleware(wd string) error {
 	return nil
 }
 
-func CreateHttpServer(wd string) error {
+func CreateHttpServer(wd string, module string) error {
 	kind := "cmd"
 	folder := "http_server"
 	name := "http_server"
@@ -1133,11 +1029,7 @@ func CreateHttpServer(wd string) error {
 		return err
 	}
 
-	data, err := template.GetHttpServerTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetHttpServerTemplate(module)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1148,7 +1040,7 @@ func CreateHttpServer(wd string) error {
 	return nil
 }
 
-func CreateApplication(wd string, application string, name string, implementing string) error {
+func CreateApplication(wd string, module, application string, name string, implementing string) error {
 	kind := "cmd"
 	extension := "go"
 
@@ -1172,11 +1064,7 @@ func CreateApplication(wd string, application string, name string, implementing 
 		return err
 	}
 
-	data, err := template.GetApplicationTemplate(application, name, implementing)
-
-	if err != nil {
-		return err
-	}
+	data := template.GetApplicationTemplate(module, application, name, implementing)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1213,11 +1101,7 @@ func CreateNatsSubscriber(wd string) error {
 		return err
 	}
 
-	data, err := template.GetNatsSubscriberTemplate()
-
-	if err != nil {
-		return err
-	}
+	data := template.GetNatsSubscriberTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
