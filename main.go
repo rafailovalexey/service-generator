@@ -1,22 +1,13 @@
 package main
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/facade"
+	"github.com/rafailovalexey/service-generator/internal/strategy"
 	"github.com/rafailovalexey/service-generator/internal/utils"
+	"log"
 	"path"
 )
 
 func main() {
-	//ctx := context.Background()
-	//
-	//a, err := application.NewApplication(ctx)
-	//
-	//if err != nil {
-	//	log.Panicf("an error occurred while starting the utils %v\n", err)
-	//}
-	//
-	//a.Run()
-
 	wd, _ := utils.GetWorkDirectory()
 	wd = path.Join(wd, "test")
 
@@ -26,29 +17,28 @@ func main() {
 	name := "employees"
 
 	application := "application"
-	//application := "subscriber"
+	//application := "subscribe"
 	//application := "cron"
 
-	implementing := "grpc_server"
-	//implementing := "http_server"
-	//implementing := "cron_scheduler"
-	//implementing := "nats_subscriber"
+	//implementing := "grpc"
+	implementing := "http"
+	//implementing := "subscribe"
+	//implementing := "cron"
 
-	_ = facade.CreateGo(wd, module, version)
-	_ = facade.CreateReadme(wd)
-	_ = facade.CreateGitIgnore(wd)
-	_ = facade.CreateExampleEnvironment(wd)
-	_ = facade.CreateGrpcMicroserviceMakefile(wd)
-	_ = facade.CreateDockerIgnore(wd)
-	_ = facade.CreateDockerWithPort(wd)
-	_ = facade.CreateGrpcGenerateShellScript(wd)
-	_ = facade.CreateMockGenerateShellScript(wd)
-	_ = facade.CreateGrpcLoggingInterceptor(wd)
-	_ = facade.CreateGrpcTracingInterceptor(wd)
-	_ = facade.CreateGrpcAuthenticationMiddleware(wd)
-	_ = facade.CreateGrpcServer(wd, module)
-	_ = facade.CreateProvider(wd, module, name)
-	_ = facade.CreateProviderInterface(wd, module, name)
-	_ = facade.CreateImplementation(wd, name)
-	_ = facade.CreateApplication(wd, module, application, name, implementing)
+	switch implementing {
+	case "grpc":
+		implementing = "grpc_server"
+	case "http":
+		implementing = "http_server"
+	case "cron":
+		implementing = "cron_scheduler"
+	case "subscribe":
+		implementing = "nats_subscribe"
+	}
+
+	err := strategy.GenerateHttpApplication(wd, module, version, application, name, implementing)
+
+	if err != nil {
+		log.Panicf("%s\v", err)
+	}
 }

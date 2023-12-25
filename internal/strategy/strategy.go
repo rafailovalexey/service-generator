@@ -1,27 +1,9 @@
 package strategy
 
-import (
-	"github.com/rafailovalexey/service-generator/internal/facade"
-	"github.com/rafailovalexey/service-generator/internal/utils"
-	"log"
-)
+import "github.com/rafailovalexey/service-generator/internal/facade"
 
-type GenerationStrategyInterface interface {
-	Generate(string, string, string) error
-}
-
-type DataTransferObjectGenerationStrategy struct{}
-
-var _ GenerationStrategyInterface = (*DataTransferObjectGenerationStrategy)(nil)
-
-func (d *DataTransferObjectGenerationStrategy) Generate(_ string, layer string, name string) error {
-	wd, err := utils.GetWorkDirectory()
-
-	if err != nil {
-		return err
-	}
-
-	err = facade.CreateDataTransferObject(wd, layer, name)
+func GenerateDataTransferObject(wd string, layer string, name string) error {
+	err := facade.CreateDataTransferObject(wd, layer, name)
 
 	if err != nil {
 		return err
@@ -30,18 +12,8 @@ func (d *DataTransferObjectGenerationStrategy) Generate(_ string, layer string, 
 	return nil
 }
 
-type RealisationGenerationStrategy struct{}
-
-var _ GenerationStrategyInterface = (*RealisationGenerationStrategy)(nil)
-
-func (r *RealisationGenerationStrategy) Generate(module string, layer string, name string) error {
-	wd, err := utils.GetWorkDirectory()
-
-	if err != nil {
-		return err
-	}
-
-	err = facade.CreateInterface(wd, layer, name)
+func GenerateRealisation(wd string, module string, layer string, name string) error {
+	err := facade.CreateInterface(wd, layer, name)
 
 	if err != nil {
 		return err
@@ -56,76 +28,146 @@ func (r *RealisationGenerationStrategy) Generate(module string, layer string, na
 	return nil
 }
 
-type IncomingGenerationStrategy struct{}
-
-var _ GenerationStrategyInterface = (*IncomingGenerationStrategy)(nil)
-
-func (c *IncomingGenerationStrategy) Generate(module string, layer string, name string) error {
-	wd, err := utils.GetWorkDirectory()
+func Generate(wd string, module string, layer string, name string) error {
+	err := facade.CreateInterface(wd, layer, name)
 
 	if err != nil {
 		return err
 	}
 
-	err = facade.CreateInterface(wd, layer, name)
-
-	if err != nil {
-		log.Panicf("%v\n", err)
-	}
-
 	err = facade.CreateRealisationInterface(wd, module, layer, name)
 
 	if err != nil {
-		log.Panicf("%v\n", err)
+		return err
 	}
 
 	err = facade.CreateRequestObject(wd, layer, name)
 
 	if err != nil {
-		log.Panicf("%v\n", err)
+		return err
 	}
 
 	err = facade.CreateResponseObject(wd, layer, name)
 
 	if err != nil {
-		log.Panicf("%v\n", err)
+		return err
 	}
 
 	return nil
 }
 
-type ProviderGenerationStrategy struct{}
-
-var _ GenerationStrategyInterface = (*ProviderGenerationStrategy)(nil)
-
-func (c *ProviderGenerationStrategy) Generate(module string, _ string, name string) error {
-	wd, err := utils.GetWorkDirectory()
+func GenerateProvider(wd string, module string, name string) error {
+	err := facade.CreateProviderInterface(wd, module, name)
 
 	if err != nil {
 		return err
 	}
 
-	err = facade.CreateProviderInterface(wd, module, name)
-
-	if err != nil {
-		log.Panicf("%v\n", err)
-	}
-
 	err = facade.CreateProvider(wd, module, name)
 
 	if err != nil {
-		log.Panicf("%v\n", err)
+		return err
 	}
 
 	return nil
 }
 
-type ImplementationGenerationStrategy struct{}
+func GenerateImplementation(wd string, name string) error {
+	err := facade.CreateImplementation(wd, name)
 
-var _ GenerationStrategyInterface = (*ImplementationGenerationStrategy)(nil)
+	if err != nil {
+		return err
+	}
 
-func (c *ImplementationGenerationStrategy) Generate(_ string, _ string, name string) error {
-	wd, err := utils.GetWorkDirectory()
+	return nil
+}
+
+func GenerateGrpcApplication(wd string, module string, version string, application string, name string, implementing string) error {
+	err := facade.CreateGo(wd, module, version)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateReadme(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGitIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateEnvironment(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateExampleEnvironment(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcMicroserviceMakefile(wd, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerWithPort(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMockGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProto(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcLoggingInterceptor(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcTracingInterceptor(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcAuthenticationMiddleware(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGrpcServer(wd, module, name)
 
 	if err != nil {
 		return err
@@ -134,7 +176,161 @@ func (c *ImplementationGenerationStrategy) Generate(_ string, _ string, name str
 	err = facade.CreateImplementation(wd, name)
 
 	if err != nil {
-		log.Panicf("%v\n", err)
+		return err
+	}
+
+	err = facade.CreateProvider(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProviderInterface(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateApplication(wd, module, application, name, implementing)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMain(wd, module, application)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateHttpApplication(wd string, module string, version string, application string, name string, implementing string) error {
+	err := facade.CreateGo(wd, module, version)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateReadme(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGitIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateEnvironment(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateExampleEnvironment(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDefaultMicroserviceMakefile(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerWithPort(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMockGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateConvertError(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHttpLoggingInterceptor(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHttpAuthenticationMiddleware(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHttpCorsMiddleware(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHttpChainMiddleware(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHttpServer(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHandlerInterface(wd, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateHandler(wd, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProvider(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProviderInterface(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateApplication(wd, module, application, name, implementing)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMain(wd, module, application)
+
+	if err != nil {
+		return err
 	}
 
 	return nil

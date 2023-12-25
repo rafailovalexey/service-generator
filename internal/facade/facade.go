@@ -8,11 +8,8 @@ import (
 )
 
 func CreateInterface(wd string, layer string, name string) error {
-	kind := "internal"
-	extension := "go"
-
-	directory := path.Join(wd, kind, layer)
-	filename := utils.GetFilename(layer, extension)
+	directory := path.Join(wd, "internal", layer)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -44,10 +41,9 @@ func CreateInterface(wd string, layer string, name string) error {
 
 func CreateRealisationInterface(wd string, module string, layer string, name string) error {
 	kind := "internal"
-	extension := "go"
 
 	directory := path.Join(wd, kind, layer, name)
-	filename := utils.GetFilename(layer, extension)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -78,11 +74,8 @@ func CreateRealisationInterface(wd string, module string, layer string, name str
 }
 
 func CreateDataTransferObject(wd string, layer string, name string) error {
-	kind := "internal"
-	extension := "go"
-
-	directory := path.Join(wd, kind, layer, name)
-	filename := utils.GetFilename(layer, extension)
+	directory := path.Join(wd, "internal", layer, name)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -113,12 +106,8 @@ func CreateDataTransferObject(wd string, layer string, name string) error {
 }
 
 func CreateRequestObject(wd string, layer string, name string) error {
-	kind := "internal"
-	request := "request"
-	extension := "go"
-
-	directory := path.Join(wd, kind, layer, name, request)
-	filename := utils.GetFilename(request, extension)
+	directory := path.Join(wd, "internal", layer, name, "request")
+	filename := utils.GetFilename("request", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -149,12 +138,8 @@ func CreateRequestObject(wd string, layer string, name string) error {
 }
 
 func CreateResponseObject(wd string, layer string, name string) error {
-	kind := "internal"
-	response := "response"
-	extension := "go"
-
-	directory := path.Join(wd, kind, layer, name, response)
-	filename := utils.GetFilename(response, extension)
+	directory := path.Join(wd, "internal", layer, name, "response")
+	filename := utils.GetFilename("response", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -187,10 +172,9 @@ func CreateResponseObject(wd string, layer string, name string) error {
 func CreateProvider(wd string, module string, name string) error {
 	layer := "provider"
 	kind := "internal"
-	extension := "go"
 
 	directory := path.Join(wd, kind, layer, name)
-	filename := utils.GetFilename(layer, extension)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -214,6 +198,7 @@ func CreateProvider(wd string, module string, name string) error {
 	available["api"] = struct{}{}
 	available["controller"] = struct{}{}
 	available["implementation"] = struct{}{}
+	available["handler"] = struct{}{}
 	available["client"] = struct{}{}
 	available["validation"] = struct{}{}
 	available["converter"] = struct{}{}
@@ -251,10 +236,9 @@ func CreateProvider(wd string, module string, name string) error {
 func CreateProviderInterface(wd string, module string, name string) error {
 	layer := "provider"
 	kind := "internal"
-	extension := "go"
 
 	directory := path.Join(wd, kind, layer)
-	filename := utils.GetFilename(layer, extension)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -278,6 +262,7 @@ func CreateProviderInterface(wd string, module string, name string) error {
 	available["api"] = struct{}{}
 	available["controller"] = struct{}{}
 	available["implementation"] = struct{}{}
+	available["handler"] = struct{}{}
 	available["client"] = struct{}{}
 	available["validation"] = struct{}{}
 	available["converter"] = struct{}{}
@@ -313,12 +298,10 @@ func CreateProviderInterface(wd string, module string, name string) error {
 }
 
 func CreateImplementation(wd string, name string) error {
-	kind := "internal"
 	layer := "implementation"
-	extension := "go"
 
-	directory := path.Join(wd, kind, layer, name)
-	filename := utils.GetFilename(layer, extension)
+	directory := path.Join(wd, "internal", layer, name)
+	filename := utils.GetFilename(layer, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -348,12 +331,79 @@ func CreateImplementation(wd string, name string) error {
 	return nil
 }
 
-func CreateReadme(wd string) error {
-	name := "README"
-	extension := "md"
+func CreateHandler(wd string, name string) error {
+	layer := "handler"
+	kind := "internal"
 
+	directory := path.Join(wd, kind, layer, name)
+	filename := utils.GetFilename(layer, "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHandlerRealisationTemplate(layer, name)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateHandlerInterface(wd string, name string) error {
+	layer := "handler"
+	kind := "internal"
+
+	directory := path.Join(wd, kind, layer)
+	filename := utils.GetFilename(layer, "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetHandlerInterfaceTemplate(layer, name)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateReadme(wd string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename("README", "md")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -384,11 +434,8 @@ func CreateReadme(wd string) error {
 }
 
 func CreateGitIgnore(wd string) error {
-	name := ".gitignore"
-	extension := ""
-
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename(".gitignore", "")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -418,12 +465,9 @@ func CreateGitIgnore(wd string) error {
 	return nil
 }
 
-func CreateExampleEnvironment(wd string) error {
-	name := ".example"
-	extension := "env"
-
+func CreateEnvironment(wd string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename("", "env")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -442,7 +486,7 @@ func CreateExampleEnvironment(wd string) error {
 		return err
 	}
 
-	data := template.GetExampleEnvironmentTemplate()
+	data := template.GetEnvironmentTemplate()
 
 	err = utils.SetFileData(filepath, data)
 
@@ -453,12 +497,9 @@ func CreateExampleEnvironment(wd string) error {
 	return nil
 }
 
-func CreateGrpcMicroserviceMakefile(wd string) error {
-	name := "Makefile"
-	extension := ""
-
+func CreateExampleEnvironment(wd string, application string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename(".example", "env")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -477,7 +518,39 @@ func CreateGrpcMicroserviceMakefile(wd string) error {
 		return err
 	}
 
-	data := template.GetGrpcMicroserviceMakefileTemplate()
+	data := template.GetExampleEnvironmentTemplate(application)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGrpcMicroserviceMakefile(wd string, name string) error {
+	directory := path.Join(wd)
+	filename := utils.GetFilename("Makefile", "")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGrpcMicroserviceMakefileTemplate(name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -489,11 +562,8 @@ func CreateGrpcMicroserviceMakefile(wd string) error {
 }
 
 func CreateDefaultMicroserviceMakefile(wd string) error {
-	name := "Makefile"
-	extension := ""
-
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename("Makefile", "")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -524,11 +594,8 @@ func CreateDefaultMicroserviceMakefile(wd string) error {
 }
 
 func CreateDockerIgnore(wd string) error {
-	name := ".dockerignore"
-	extension := ""
-
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename(".dockerignore", "")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -558,12 +625,9 @@ func CreateDockerIgnore(wd string) error {
 	return nil
 }
 
-func CreateDockerWithPort(wd string) error {
-	name := "application"
-	extension := "dockerfile"
-
+func CreateDockerWithPort(wd string, application string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename(application, "dockerfile")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -593,12 +657,9 @@ func CreateDockerWithPort(wd string) error {
 	return nil
 }
 
-func CreateDockerWithoutPort(wd string) error {
-	name := "application"
-	extension := "dockerfile"
-
+func CreateDockerWithoutPort(wd string, application string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename(application, "dockerfile")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -629,12 +690,8 @@ func CreateDockerWithoutPort(wd string) error {
 }
 
 func CreateGrpcGenerateShellScript(wd string) error {
-	kind := "bin"
-	name := "grpc-generate"
-	extension := "sh"
-
-	directory := path.Join(wd, kind)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "bin")
+	filename := utils.GetFilename("grpc-generate", "sh")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -665,12 +722,8 @@ func CreateGrpcGenerateShellScript(wd string) error {
 }
 
 func CreateMockGenerateShellScript(wd string) error {
-	kind := "bin"
-	name := "mock-generate"
-	extension := "sh"
-
-	directory := path.Join(wd, kind)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "bin")
+	filename := utils.GetFilename("mock-generate", "sh")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -701,14 +754,8 @@ func CreateMockGenerateShellScript(wd string) error {
 }
 
 func CreateGrpcLoggingInterceptor(wd string) error {
-	kind := "cmd"
-	subfolder := "grpc_server"
-	folder := "interceptor"
-	name := "logging"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "grpc_server", "interceptor")
+	filename := utils.GetFilename("logging", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -739,14 +786,8 @@ func CreateGrpcLoggingInterceptor(wd string) error {
 }
 
 func CreateGrpcTracingInterceptor(wd string) error {
-	kind := "cmd"
-	subfolder := "grpc_server"
-	folder := "interceptor"
-	name := "tracing"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "grpc_server", "interceptor")
+	filename := utils.GetFilename("tracing", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -777,14 +818,8 @@ func CreateGrpcTracingInterceptor(wd string) error {
 }
 
 func CreateGrpcAuthenticationMiddleware(wd string) error {
-	kind := "cmd"
-	subfolder := "grpc_server"
-	folder := "middleware"
-	name := "authentication"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "grpc_server", "middleware")
+	filename := utils.GetFilename("authentication", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -814,14 +849,9 @@ func CreateGrpcAuthenticationMiddleware(wd string) error {
 	return nil
 }
 
-func CreateGrpcServer(wd string, module string) error {
-	kind := "cmd"
-	subfolder := "grpc_server"
-	name := "grpc_server"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder)
-	filename := utils.GetFilename(name, extension)
+func CreateGrpcServer(wd string, module string, name string) error {
+	directory := path.Join(wd, "cmd", "grpc_server")
+	filename := utils.GetFilename("grpc_server", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -840,7 +870,7 @@ func CreateGrpcServer(wd string, module string) error {
 		return err
 	}
 
-	data := template.GetGrpcServerTemplate(module)
+	data := template.GetGrpcServerTemplate(module, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -852,14 +882,8 @@ func CreateGrpcServer(wd string, module string) error {
 }
 
 func CreateHttpLoggingInterceptor(wd string) error {
-	kind := "cmd"
-	subfolder := "http_server"
-	folder := "interceptor"
-	name := "logging"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "http_server", "interceptor")
+	filename := utils.GetFilename("logging", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -890,14 +914,8 @@ func CreateHttpLoggingInterceptor(wd string) error {
 }
 
 func CreateHttpAuthenticationMiddleware(wd string) error {
-	kind := "cmd"
-	subfolder := "http_server"
-	folder := "middleware"
-	name := "authentication"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "http_server", "middleware")
+	filename := utils.GetFilename("authentication", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -928,14 +946,8 @@ func CreateHttpAuthenticationMiddleware(wd string) error {
 }
 
 func CreateHttpCorsMiddleware(wd string) error {
-	kind := "cmd"
-	subfolder := "http_server"
-	folder := "middleware"
-	name := "cors"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "http_server", "middleware")
+	filename := utils.GetFilename("cors", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -966,14 +978,8 @@ func CreateHttpCorsMiddleware(wd string) error {
 }
 
 func CreateHttpChainMiddleware(wd string) error {
-	kind := "cmd"
-	subfolder := "http_server"
-	folder := "middleware"
-	name := "chain"
-	extension := "go"
-
-	directory := path.Join(wd, kind, subfolder, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "http_server", "middleware")
+	filename := utils.GetFilename("chain", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1003,14 +1009,9 @@ func CreateHttpChainMiddleware(wd string) error {
 	return nil
 }
 
-func CreateHttpServer(wd string, module string) error {
-	kind := "cmd"
-	folder := "http_server"
-	name := "http_server"
-	extension := "go"
-
-	directory := path.Join(wd, kind, folder)
-	filename := utils.GetFilename(name, extension)
+func CreateHttpServer(wd string, module string, name string) error {
+	directory := path.Join(wd, "cmd", "http_server")
+	filename := utils.GetFilename("http_server", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1029,7 +1030,7 @@ func CreateHttpServer(wd string, module string) error {
 		return err
 	}
 
-	data := template.GetHttpServerTemplate(module)
+	data := template.GetHttpServerTemplate(module, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1041,11 +1042,8 @@ func CreateHttpServer(wd string, module string) error {
 }
 
 func CreateApplication(wd string, module string, application string, name string, implementing string) error {
-	kind := "cmd"
-	extension := "go"
-
-	directory := path.Join(wd, kind, application)
-	filename := utils.GetFilename(application, extension)
+	directory := path.Join(wd, "cmd", application)
+	filename := utils.GetFilename(application, "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1076,13 +1074,8 @@ func CreateApplication(wd string, module string, application string, name string
 }
 
 func CreateNatsSubscriber(wd string) error {
-	kind := "cmd"
-	folder := "nats_subscriber"
-	name := "nats_subscriber"
-	extension := "go"
-
-	directory := path.Join(wd, kind, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "nats_subscribe")
+	filename := utils.GetFilename("nats_subscribe", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1113,13 +1106,8 @@ func CreateNatsSubscriber(wd string) error {
 }
 
 func CreateCronScheduler(wd string) error {
-	kind := "cmd"
-	folder := "cron_scheduler"
-	name := "cron_scheduler"
-	extension := "go"
-
-	directory := path.Join(wd, kind, folder)
-	filename := utils.GetFilename(name, extension)
+	directory := path.Join(wd, "cmd", "cron_scheduler")
+	filename := utils.GetFilename("cron_scheduler", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1149,12 +1137,75 @@ func CreateCronScheduler(wd string) error {
 	return nil
 }
 
-func CreateGo(wd string, module string, version string) error {
-	name := "go"
-	extension := "mod"
+func CreateProto(wd string, module string, name string) error {
+	kind := "api"
 
+	directory := path.Join(wd, kind, name+"_"+"v1")
+	filename := utils.GetFilename(name, "proto")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetProtoTemplate(module, kind, name)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateMain(wd string, module string, application string) error {
 	directory := path.Join(wd)
-	filename := utils.GetFilename(name, extension)
+	filename := utils.GetFilename("main", "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetMainTemplate(module, application)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGo(wd string, module string, version string) error {
+	directory := path.Join(wd)
+	filename := utils.GetFilename("go", "mod")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1174,6 +1225,38 @@ func CreateGo(wd string, module string, version string) error {
 	}
 
 	data := template.GetGoTemplate(module, version)
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateConvertError(wd string) error {
+	directory := path.Join(wd, "utils")
+	filename := utils.GetFilename("error", "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetConvertErrorTemplate()
 
 	err = utils.SetFileData(filepath, data)
 

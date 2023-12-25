@@ -126,8 +126,8 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 		data.WriteString(separator)
 
 		for _, l := range layers {
-			switch {
-			case l == "implementation":
+			switch l {
+			case "implementation":
 				data.WriteString(fmt.Sprintf("\t\"%s/%s/%s/%s\"", module, kind, l, name))
 				data.WriteString(separator)
 			default:
@@ -141,8 +141,8 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 		data.WriteString(separator)
 	}
 
-	switch {
-	case len(layers) == 0:
+	switch len(layers) {
+	case 0:
 		data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(name), utils.Capitalize(layer)))
 		data.WriteString(separator)
 	default:
@@ -150,8 +150,8 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 		data.WriteString(separator)
 
 		for _, l := range layers {
-			switch {
-			case l == "implementation":
+			switch l {
+			case "implementation":
 				data.WriteString(fmt.Sprintf("\tGet%s%s() *%s.%sImplementation", utils.Capitalize(name), utils.Capitalize(l), name, utils.Capitalize(name)))
 				data.WriteString(separator)
 			default:
@@ -182,8 +182,8 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		switch {
-		case l == "implementation":
+		switch l {
+		case "implementation":
 			data.WriteString(fmt.Sprintf("\t\"%s/%s/implementation/%s\"", module, kind, name))
 			data.WriteString(separator)
 		default:
@@ -198,17 +198,18 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch {
-	case len(layers) == 0:
+	switch len(layers) {
+	case 0:
 		data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
+		data.WriteString(separator)
 		data.WriteString(separator)
 	default:
 		data.WriteString(fmt.Sprintf("type %s%s struct {", utils.Capitalize(name), utils.Capitalize(layer)))
 		data.WriteString(separator)
 
 		for _, l := range layers {
-			switch {
-			case l == "implementation":
+			switch l {
+			case "implementation":
 				data.WriteString(fmt.Sprintf("\t%s%s *%s.%sImplementation", name, utils.Capitalize(l), name, utils.Capitalize(name)))
 				data.WriteString(separator)
 			default:
@@ -234,8 +235,8 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data.WriteString(separator)
 
 	for _, l := range layers {
-		switch {
-		case l == "implementation":
+		switch l {
+		case "implementation":
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() *%s.%sImplementation {", utils.FirstLetter(layer), utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(l), name, utils.Capitalize(name)))
 			data.WriteString(separator)
@@ -347,13 +348,33 @@ func GetGitIgnoreTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetExampleEnvironmentTemplate() []byte {
+func GetEnvironmentTemplate() []byte {
 	data := bytes.Buffer{}
 
 	return data.Bytes()
 }
 
-func GetGrpcMicroserviceMakefileTemplate() []byte {
+func GetExampleEnvironmentTemplate(application string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	switch application {
+	case "application":
+		data.WriteString(fmt.Sprintf("HOSTNAME = \"hostname\""))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("PORT = \"port\""))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("AUTHENTICATION_TOKEN_HEADER = \"header\""))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("AUTHENTICATION_TOKEN = \"token\""))
+		data.WriteString(separator)
+	}
+
+	return data.Bytes()
+}
+
+func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -366,6 +387,8 @@ func GetGrpcMicroserviceMakefileTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("PROTO_FILES = \\"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", name, name))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY = mocks"))
@@ -951,7 +974,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetGrpcServerTemplate(module string) []byte {
+func GetGrpcServerTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -966,6 +989,8 @@ func GetGrpcServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"%s/cmd/grpc_server/middleware\"", module))
 	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"%s/pkg/%s_v1\"", module, name))
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/reflection\""))
@@ -979,7 +1004,7 @@ func GetGrpcServerTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func Run() {"))
+	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
 	data.WriteString(separator)
@@ -1025,6 +1050,9 @@ func GetGrpcServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treflection.Register(server)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server is running at %s\", address))"))
@@ -1270,7 +1298,7 @@ func GetHttpChainMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetHttpServerTemplate(module string) []byte {
+func GetHttpServerTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
@@ -1285,8 +1313,6 @@ func GetHttpServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"%s/cmd/http_server/middleware\"", module))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"github.com/gorilla/mux\""))
-	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"log\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"net/http\""))
@@ -1296,9 +1322,9 @@ func GetHttpServerTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func Run() {"))
+	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", name, utils.Capitalize(name)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\trouter := mux.NewRouter()"))
+	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
@@ -1312,12 +1338,13 @@ func GetHttpServerTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\trouter.Use(middlewares)"))
+	data.WriteString(fmt.Sprintf("\thandler := middlewares(http.HandlerFunc(%sHandler.Handle))", name))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\trouter.NotFoundHandler = http.HandlerFunc(NotFound)"))
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.Handle)))", name, name))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\trouter.MethodNotAllowedHandler = http.HandlerFunc(MethodNotAllowed)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\router.Handle(\"/\", middlewares(http.HandlerFunc(NotFound)))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
@@ -1356,21 +1383,7 @@ func GetHttpServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusNotFound)"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tresponse.Write(getErrorInJson(\"unauthorized\"))"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func MethodNotAllowed(response http.ResponseWriter, request *http.Request) {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusMethodNotAllowed)"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tresponse.Write(getErrorInJson(\"unauthorized\"))"))
+	data.WriteString(fmt.Sprintf("\tresponse.Write(utils.ConvertError(\"unauthorized\"))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn"))
@@ -1396,7 +1409,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"%s/internal/provider\"", module))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider \"%s/internal/provider/%s\"", utils.SingularForm(name), module, name))
+	data.WriteString(fmt.Sprintf("\t%sProvider \"%s/internal/provider/%s\"", name, module, name))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"github.com/joho/godotenv\""))
 	data.WriteString(separator)
@@ -1418,7 +1431,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("type %s struct {", utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", utils.SingularForm(name), utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -1495,7 +1508,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("func (%s *%s) InitializeProvider(_ context.Context) error {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), utils.SingularForm(name), utils.SingularForm(name), utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), name, name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn nil"))
@@ -1503,10 +1516,28 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func (%s *%s) Run() {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s.Run()", implementing))
-	data.WriteString(separator)
+
+	switch implementing {
+	case "grpc_server":
+		data.WriteString(fmt.Sprintf("\timplementation := %s.%sProvider.Get%sImplementation()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", implementing))
+		data.WriteString(separator)
+	case "http_server":
+		data.WriteString(fmt.Sprintf("\thandler := %s.%sProvider.Get%sHandler()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", implementing))
+		data.WriteString(separator)
+	default:
+		data.WriteString(fmt.Sprintf("\t%s.Run()", implementing))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
@@ -1517,7 +1548,7 @@ func GetNatsSubscriberTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("package nats_subscriber"))
+	data.WriteString(fmt.Sprintf("package nats_subscribe"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("import ("))
@@ -1658,6 +1689,67 @@ func GetCronSchedulerTemplate() []byte {
 	return data.Bytes()
 }
 
+func GetMainTemplate(module string, application string) []byte {
+
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package main"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"%s/cmd/%s\"", module, application))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"golang.org/x/net/context\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"log\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func main() {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tctx := context.Background()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%s, err := %s.New%s(ctx)", utils.FirstLetter(application), application, utils.Capitalize(application)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"an error occurred while starting the application %v\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%s.Run()", utils.FirstLetter(application)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetProtoTemplate(module string, kind string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("syntax = \"proto3\";"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("package %s_v1;", name))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, kind, name))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("service %sV1 {}", utils.Capitalize(name)))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
 func GetGoTemplate(module string, version string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
@@ -1666,6 +1758,89 @@ func GetGoTemplate(module string, version string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("go %s", version))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHandlerInterfaceTemplate(layer string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHandlerRealisationTemplate(layer string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle() {", utils.FirstLetter(name), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetConvertErrorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("type ConverterError struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tError string `json:\"error\"`"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func ConvertError(message string) []byte {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconvert := &ConverterError{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tError: message,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresult, err := json.Marshal(convert)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn []byte(err.Error())"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn result"))
 	data.WriteString(separator)
 
 	return data.Bytes()
