@@ -1235,7 +1235,7 @@ func CreateGo(wd string, module string, version string) error {
 	return nil
 }
 
-func CreateConvertError(wd string) error {
+func CreateUtilsConvertError(wd string) error {
 	directory := path.Join(wd, "utils")
 	filename := utils.GetFilename("error", "go")
 	filepath := path.Join(directory, filename)
@@ -1256,7 +1256,39 @@ func CreateConvertError(wd string) error {
 		return err
 	}
 
-	data := template.GetConvertErrorTemplate()
+	data := template.GetUtilsConvertErrorTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateUtilsResponse(wd string) error {
+	directory := path.Join(wd, "utils")
+	filename := utils.GetFilename("response", "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetUtilsResponseTemplate()
 
 	err = utils.SetFileData(filepath, data)
 

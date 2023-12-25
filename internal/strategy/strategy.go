@@ -261,7 +261,13 @@ func GenerateHttpApplication(wd string, module string, version string, applicati
 		return err
 	}
 
-	err = facade.CreateConvertError(wd)
+	err = facade.CreateUtilsConvertError(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsResponse(wd)
 
 	if err != nil {
 		return err

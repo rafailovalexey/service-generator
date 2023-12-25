@@ -304,6 +304,77 @@ func GetImplementationRealisationTemplate(layer string, name string) []byte {
 	return data.Bytes()
 }
 
+func GetHandlerInterfaceTemplate(layer string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\"net/http\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sHandle(response http.ResponseWriter, request *http.Request)", utils.Capitalize(name)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHandlerRealisationTemplate(layer string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\"net/http\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", utils.FirstLetter(name), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tswitch request.Method {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdefault:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tutils.ResponseMethodNotAllowed(response)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
 func GetReadmeTemplate() []byte {
 	data := bytes.Buffer{}
 
@@ -1732,57 +1803,22 @@ func GetGoTemplate(module string, version string) []byte {
 	return data.Bytes()
 }
 
-func GetHandlerInterfaceTemplate(layer string, name string) []byte {
-	data := bytes.Buffer{}
-	separator := utils.GetSeparator()
-
-	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
-
-	return data.Bytes()
-}
-
-func GetHandlerRealisationTemplate(layer string, name string) []byte {
-	data := bytes.Buffer{}
-	separator := utils.GetSeparator()
-
-	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle() {", utils.FirstLetter(name), utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-
-	return data.Bytes()
-}
-
-func GetConvertErrorTemplate() []byte {
+func GetUtilsConvertErrorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package utils"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"encoding/json\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("type ConverterError struct {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tError string `json:\"error\"`"))
@@ -1790,6 +1826,7 @@ func GetConvertErrorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func ConvertError(message string) []byte {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tconvert := &ConverterError{"))
@@ -1799,9 +1836,11 @@ func GetConvertErrorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tresult, err := json.Marshal(convert)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn []byte(err.Error())"))
@@ -1809,9 +1848,52 @@ func GetConvertErrorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn result"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetUtilsResponseTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"net/http\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ResponseNotFound(message string) []byte {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusNotFound)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(utils.ConvertError(\"not found\"))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ResponseMethodNotAllowed(message string) []byte {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusMethodNotAllowed)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(utils.ConvertError(\"method not allowed\"))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
 	return data.Bytes()
