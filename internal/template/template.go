@@ -1445,9 +1445,9 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"%s/internal/provider\"", module))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider \"%s/internal/provider/%s\"", name, module, name))
-	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"github.com/joho/godotenv\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sProvider \"%s/internal/provider/%s\"", name, module, name))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
@@ -1569,6 +1569,18 @@ func GetApplicationTemplate(module string, application string, name string, impl
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", implementing))
 		data.WriteString(separator)
+	case "nats_subscribe":
+		data.WriteString(fmt.Sprintf("\tcontroller := %s.%sProvider.Get%sController()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%s.Run(controller)", implementing))
+		data.WriteString(separator)
+	case "cron_schedule":
+		data.WriteString(fmt.Sprintf("\tservice  := %s.%sProvider.Get%sService()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%s.Run(service)", implementing))
+		data.WriteString(separator)
 	default:
 		data.WriteString(fmt.Sprintf("\t%s.Run()", implementing))
 		data.WriteString(separator)
@@ -1580,14 +1592,17 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	return data.Bytes()
 }
 
-func GetNatsSubscriberTemplate() []byte {
+func GetNatsSubscriberTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
 	data.WriteString(fmt.Sprintf("package nats_subscribe"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"%s/internal/controller\"", module))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"github.com/nats-io/stan.go\""))
 	data.WriteString(separator)
@@ -1602,21 +1617,25 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func Run(employeeController controller.InterfaceEmployeeController) {"))
+
+	data.WriteString(fmt.Sprintf("func Run(_ controller.%sControllerInterface) {", utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tsc := connect()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tdefer sc.Close()"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func connect() stan.Conn {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\turl := os.Getenv(\"NATS_URL\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif url == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify nats url\")"))
@@ -1624,9 +1643,11 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tcluster := os.Getenv(\"NATS_CLUSTER_ID\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif cluster == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the cluster id\")"))
@@ -1634,9 +1655,11 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tsc, err := stan.Connect(cluster, \"subscriber-1\", stan.NatsURL(url))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"error %v\\n\", err)"))
@@ -1644,16 +1667,19 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn sc"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func subscribe(sc stan.Conn, subject string, queue string, handler stan.MsgHandler) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tsub, err := sc.QueueSubscribe(subject, queue, handler)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"error %v\\n\", err)"))
@@ -1661,13 +1687,15 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tdefer sub.Unsubscribe()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tlog.Printf(\"subscribed to the message queue %s\\n\", subject)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tchannel := make(chan os.Signal, 1)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tsignal.Notify(channel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)"))
@@ -1680,14 +1708,16 @@ func GetNatsSubscriberTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetCronSchedulerTemplate() []byte {
+func GetCronScheduleTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("package cron_scheduler"))
+	data.WriteString(fmt.Sprintf("package cron_schedule"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"%s/internal/service\"", module))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"github.com/robfig/cron/v3\""))
 	data.WriteString(separator)
@@ -1702,24 +1732,30 @@ func GetCronSchedulerTemplate() []byte {
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func Run() {"))
+	data.WriteString(fmt.Sprintf("func Run(_ service.%sServiceInterface) {", utils.Capitalize(name)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("c := cron.New()"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("log.Printf(\"cron started\\n\")"))
+	data.WriteString(fmt.Sprintf("\tc := cron.New()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("c.Start()"))
+	data.WriteString(fmt.Sprintf("\tlog.Printf(\"cron started\\n\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("defer c.Stop()"))
+	data.WriteString(fmt.Sprintf("\tc.Start()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("exit := make(chan os.Signal)"))
+	data.WriteString(fmt.Sprintf("\tdefer c.Stop()"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("signal.Notify(exit, syscall.SIGINT)"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("<-exit"))
+	data.WriteString(fmt.Sprintf("\texit := make(chan os.Signal)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tsignal.Notify(exit, syscall.SIGINT)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t<-exit"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlog.Printf(\"cron stopped\\n\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
 	return data.Bytes()

@@ -83,7 +83,7 @@ func GenerateImplementation(wd string, name string) error {
 }
 
 func GenerateGrpcApplication(wd string, module string, name string) error {
-	version := "1.20"
+	version := "1.19"
 	application := "application"
 	implementing := "grpc_server"
 
@@ -211,7 +211,7 @@ func GenerateGrpcApplication(wd string, module string, name string) error {
 }
 
 func GenerateHttpApplication(wd string, module string, name string) error {
-	version := "1.20"
+	version := "1.19"
 	application := "application"
 	implementing := "http_server"
 
@@ -351,7 +351,7 @@ func GenerateHttpApplication(wd string, module string, name string) error {
 }
 
 func GenerateSubscribeApplication(wd string, module string, name string) error {
-	version := "1.20"
+	version := "1.19"
 	application := "subscribe"
 	implementing := "nats_subscribe"
 
@@ -409,6 +409,36 @@ func GenerateSubscribeApplication(wd string, module string, name string) error {
 		return err
 	}
 
+	err = facade.CreateInterface(wd, "controller", name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateRealisationInterface(wd, module, "controller", name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProvider(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProviderInterface(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateNatsSubscriber(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
 	err = facade.CreateApplication(wd, module, application, name, implementing)
 
 	if err != nil {
@@ -425,9 +455,9 @@ func GenerateSubscribeApplication(wd string, module string, name string) error {
 }
 
 func GenerateCronApplication(wd string, module string, name string) error {
-	version := "1.20"
+	version := "1.19"
 	application := "cron"
-	implementing := "cron_scheduler"
+	implementing := "cron_schedule"
 
 	err := facade.CreateGo(wd, module, version)
 
@@ -478,6 +508,36 @@ func GenerateCronApplication(wd string, module string, name string) error {
 	}
 
 	err = facade.CreateMockGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateInterface(wd, "service", name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateRealisationInterface(wd, module, "service", name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProvider(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProviderInterface(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateCronSchedule(wd, module, name)
 
 	if err != nil {
 		return err

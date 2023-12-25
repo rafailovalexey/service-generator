@@ -14,7 +14,7 @@ func main() {
 	module := "github.com/rafailovalexey/service-test"
 	name := "employees"
 
-	err := strategy.GenerateSubscribeApplication(wd, module, name)
+	err := strategy.GenerateGrpcApplication(wd, module, name)
 
 	if err != nil {
 		log.Panicf("%s\v", err)

@@ -1073,7 +1073,7 @@ func CreateApplication(wd string, module string, application string, name string
 	return nil
 }
 
-func CreateNatsSubscriber(wd string) error {
+func CreateNatsSubscriber(wd string, module string, name string) error {
 	directory := path.Join(wd, "cmd", "nats_subscribe")
 	filename := utils.GetFilename("nats_subscribe", "go")
 	filepath := path.Join(directory, filename)
@@ -1094,7 +1094,7 @@ func CreateNatsSubscriber(wd string) error {
 		return err
 	}
 
-	data := template.GetNatsSubscriberTemplate()
+	data := template.GetNatsSubscriberTemplate(module, name)
 
 	err = utils.SetFileData(filepath, data)
 
@@ -1105,9 +1105,9 @@ func CreateNatsSubscriber(wd string) error {
 	return nil
 }
 
-func CreateCronScheduler(wd string) error {
-	directory := path.Join(wd, "cmd", "cron_scheduler")
-	filename := utils.GetFilename("cron_scheduler", "go")
+func CreateCronSchedule(wd string, module string, name string) error {
+	directory := path.Join(wd, "cmd", "cron_schedule")
+	filename := utils.GetFilename("cron_schedule", "go")
 	filepath := path.Join(directory, filename)
 
 	isExist := utils.PathIsExist(directory)
@@ -1126,7 +1126,7 @@ func CreateCronScheduler(wd string) error {
 		return err
 	}
 
-	data := template.GetCronSchedulerTemplate()
+	data := template.GetCronScheduleTemplate(module, name)
 
 	err = utils.SetFileData(filepath, data)
 
