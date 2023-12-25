@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 func Capitalize(value string) string {
 	if value == "" {

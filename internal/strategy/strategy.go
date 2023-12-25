@@ -1,6 +1,8 @@
 package strategy
 
-import "github.com/rafailovalexey/service-generator/internal/facade"
+import (
+	"github.com/rafailovalexey/service-generator/internal/facade"
+)
 
 func GenerateDataTransferObject(wd string, layer string, name string) error {
 	err := facade.CreateDataTransferObject(wd, layer, name)
