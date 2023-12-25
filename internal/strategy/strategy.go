@@ -28,7 +28,7 @@ func GenerateRealisation(wd string, module string, layer string, name string) er
 	return nil
 }
 
-func Generate(wd string, module string, layer string, name string) error {
+func GenerateInput(wd string, module string, layer string, name string) error {
 	err := facade.CreateInterface(wd, layer, name)
 
 	if err != nil {
@@ -82,7 +82,11 @@ func GenerateImplementation(wd string, name string) error {
 	return nil
 }
 
-func GenerateGrpcApplication(wd string, module string, version string, application string, name string, implementing string) error {
+func GenerateGrpcApplication(wd string, module string, name string) error {
+	version := "1.20"
+	application := "application"
+	implementing := "grpc_server"
+
 	err := facade.CreateGo(wd, module, version)
 
 	if err != nil {
@@ -206,7 +210,11 @@ func GenerateGrpcApplication(wd string, module string, version string, applicati
 	return nil
 }
 
-func GenerateHttpApplication(wd string, module string, version string, application string, name string, implementing string) error {
+func GenerateHttpApplication(wd string, module string, name string) error {
+	version := "1.20"
+	application := "application"
+	implementing := "http_server"
+
 	err := facade.CreateGo(wd, module, version)
 
 	if err != nil {
@@ -322,6 +330,154 @@ func GenerateHttpApplication(wd string, module string, version string, applicati
 	}
 
 	err = facade.CreateProviderInterface(wd, module, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateApplication(wd, module, application, name, implementing)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMain(wd, module, application)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateSubscribeApplication(wd string, module string, name string) error {
+	version := "1.20"
+	application := "subscribe"
+	implementing := "nats_subscribe"
+
+	err := facade.CreateGo(wd, module, version)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateReadme(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGitIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateEnvironment(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateExampleEnvironment(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDefaultMicroserviceMakefile(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerWithoutPort(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMockGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateApplication(wd, module, application, name, implementing)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMain(wd, module, application)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateCronApplication(wd string, module string, name string) error {
+	version := "1.20"
+	application := "cron"
+	implementing := "cron_scheduler"
+
+	err := facade.CreateGo(wd, module, version)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateReadme(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateGitIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateEnvironment(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateExampleEnvironment(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDefaultMicroserviceMakefile(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerIgnore(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDockerWithoutPort(wd, application)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateMockGenerateShellScript(wd)
 
 	if err != nil {
 		return err
