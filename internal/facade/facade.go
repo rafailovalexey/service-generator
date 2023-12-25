@@ -331,7 +331,7 @@ func CreateImplementation(wd string, name string) error {
 	return nil
 }
 
-func CreateHandler(wd string, name string) error {
+func CreateHandler(wd string, module string, name string) error {
 	layer := "handler"
 	kind := "internal"
 
@@ -355,7 +355,7 @@ func CreateHandler(wd string, name string) error {
 		return err
 	}
 
-	data := template.GetHandlerRealisationTemplate(layer, name)
+	data := template.GetHandlerRealisationTemplate(module, kind, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 

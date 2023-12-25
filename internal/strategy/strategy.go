@@ -309,7 +309,7 @@ func GenerateHttpApplication(wd string, module string, version string, applicati
 		return err
 	}
 
-	err = facade.CreateHandler(wd, name)
+	err = facade.CreateHandler(wd, module, name)
 
 	if err != nil {
 		return err
