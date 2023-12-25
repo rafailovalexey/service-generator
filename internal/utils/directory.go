@@ -39,3 +39,13 @@ func CreateDirectory(path string) error {
 
 	return nil
 }
+
+func GetWorkDirectory() (string, error) {
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return "", err
+	}
+
+	return wd, nil
+}

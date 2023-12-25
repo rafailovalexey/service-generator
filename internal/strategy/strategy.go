@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"github.com/rafailovalexey/service-generator/internal/facade"
+	"github.com/rafailovalexey/service-generator/internal/utils"
 	"log"
 )
 
@@ -14,7 +15,13 @@ type DataTransferObjectGenerationStrategy struct{}
 var _ GenerationStrategyInterface = (*DataTransferObjectGenerationStrategy)(nil)
 
 func (d *DataTransferObjectGenerationStrategy) Generate(layer string, name string) error {
-	err := facade.CreateDataTransferObject(layer, name)
+	wd, err := utils.GetWorkDirectory()
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateDataTransferObject(wd, layer, name)
 
 	if err != nil {
 		return err
@@ -28,13 +35,19 @@ type RealisationGenerationStrategy struct{}
 var _ GenerationStrategyInterface = (*RealisationGenerationStrategy)(nil)
 
 func (r *RealisationGenerationStrategy) Generate(layer string, name string) error {
-	err := facade.CreateInterface(layer, name)
+	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
 		return err
 	}
 
-	err = facade.CreateRealisationInterface(layer, name)
+	err = facade.CreateInterface(wd, layer, name)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateRealisationInterface(wd, layer, name)
 
 	if err != nil {
 		return err
@@ -48,25 +61,31 @@ type IncomingGenerationStrategy struct{}
 var _ GenerationStrategyInterface = (*IncomingGenerationStrategy)(nil)
 
 func (c *IncomingGenerationStrategy) Generate(layer string, name string) error {
-	err := facade.CreateInterface(layer, name)
+	wd, err := utils.GetWorkDirectory()
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateInterface(wd, layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateRealisationInterface(layer, name)
+	err = facade.CreateRealisationInterface(wd, layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateRequestObject(layer, name)
+	err = facade.CreateRequestObject(wd, layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateResponseObject(layer, name)
+	err = facade.CreateResponseObject(wd, layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
@@ -79,14 +98,20 @@ type ProviderGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*ProviderGenerationStrategy)(nil)
 
-func (c *ProviderGenerationStrategy) Generate(layer string, name string) error {
-	err := facade.CreateProviderInterface(layer, name)
+func (c *ProviderGenerationStrategy) Generate(_ string, name string) error {
+	wd, err := utils.GetWorkDirectory()
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateProviderInterface(wd, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateProvider(layer, name)
+	err = facade.CreateProvider(wd, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
@@ -99,8 +124,14 @@ type ImplementationGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*ImplementationGenerationStrategy)(nil)
 
-func (c *ImplementationGenerationStrategy) Generate(layer string, name string) error {
-	err := facade.CreateImplementation(layer, name)
+func (c *ImplementationGenerationStrategy) Generate(_ string, name string) error {
+	wd, err := utils.GetWorkDirectory()
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateImplementation(wd, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)

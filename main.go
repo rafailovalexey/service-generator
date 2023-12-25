@@ -1,6 +1,10 @@
 package main
 
-import "github.com/rafailovalexey/service-generator/internal/facade"
+import (
+	"github.com/rafailovalexey/service-generator/internal/facade"
+	"github.com/rafailovalexey/service-generator/internal/utils"
+	"path"
+)
 
 func main() {
 	//ctx := context.Background()
@@ -12,25 +16,31 @@ func main() {
 	//}
 	//
 	//a.Run()
+	wd, _ := utils.GetWorkDirectory()
 
-	_ = facade.CreateReadme()
-	_ = facade.CreateGitIgnore()
-	_ = facade.CreateExampleEnvironment()
-	_ = facade.CreateGrpcMicroserviceMakefile()
+	wd = path.Join(wd, "test12345")
+
+	_ = facade.CreateReadme(wd)
+	_ = facade.CreateGitIgnore(wd)
+	_ = facade.CreateExampleEnvironment(wd)
+	_ = facade.CreateGrpcMicroserviceMakefile(wd)
+	_ = facade.CreateDockerIgnore(wd)
+	_ = facade.CreateDockerWithPort(wd)
+	_ = facade.CreateGrpcGenerateShellScript(wd)
+	_ = facade.CreateMockGenerateShellScript(wd)
+	_ = facade.CreateGrpcLoggingInterceptor(wd)
+	_ = facade.CreateGrpcTracingInterceptor(wd)
+	_ = facade.CreateGrpcAuthenticationMiddleware(wd)
+	_ = facade.CreateGrpcServer(wd)
+	_ = facade.CreateProvider(wd, "employees")
+	_ = facade.CreateProviderInterface(wd, "employees")
+	_ = facade.CreateImplementation(wd, "employees")
+	_ = facade.CreateApplication(wd, "application", "employees", "grpc_server")
 	//_ = facade.CreateDefaultMicroserviceMakefile()
-	_ = facade.CreateDockerIgnore()
-	_ = facade.CreateDockerWithPort()
 	//_ = facade.CreateDockerWithoutPort()
-	_ = facade.CreateGrpcGenerateShellScript()
-	_ = facade.CreateMockGenerateShellScript()
-	_ = facade.CreateGrpcLoggingInterceptor()
-	_ = facade.CreateGrpcTracingInterceptor()
-	_ = facade.CreateGrpcAuthenticationMiddleware()
-	_ = facade.CreateGrpcServer()
-	_ = facade.CreateHttpLoggingInterceptor()
-	_ = facade.CreateHttpAuthenticationMiddleware()
-	_ = facade.CreateHttpCorsMiddleware()
-	_ = facade.CreateHttpChainMiddleware()
-	_ = facade.CreateHttpServer()
-	_ = facade.CreateApplication("application", "employees", "http_server")
+	//_ = facade.CreateHttpLoggingInterceptor()
+	//_ = facade.CreateHttpAuthenticationMiddleware()
+	//_ = facade.CreateHttpCorsMiddleware()
+	//_ = facade.CreateHttpChainMiddleware()
+	//_ = facade.CreateHttpServer()
 }
