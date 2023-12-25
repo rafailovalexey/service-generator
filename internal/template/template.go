@@ -198,26 +198,34 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {", utils.Capitalize(name), utils.Capitalize(layer)))
-	data.WriteString(separator)
+	switch {
+	case len(layers) == 0:
+		data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(name), utils.Capitalize(layer)))
+		data.WriteString(separator)
+	default:
+		data.WriteString(fmt.Sprintf("type %s%s struct {", utils.Capitalize(name), utils.Capitalize(layer)))
+		data.WriteString(separator)
 
-	for _, l := range layers {
-		switch {
-		case l == "implementation":
-			data.WriteString(fmt.Sprintf("\t%s%s *%s.%sImplementation", name, utils.Capitalize(l), name, utils.Capitalize(name)))
-			data.WriteString(separator)
-		default:
-			data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, utils.Capitalize(l), l, utils.Capitalize(name), utils.Capitalize(l)))
-			data.WriteString(separator)
+		for _, l := range layers {
+			switch {
+			case l == "implementation":
+				data.WriteString(fmt.Sprintf("\t%s%s *%s.%sImplementation", name, utils.Capitalize(l), name, utils.Capitalize(name)))
+				data.WriteString(separator)
+			default:
+				data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, utils.Capitalize(l), l, utils.Capitalize(name), utils.Capitalize(l)))
+				data.WriteString(separator)
+			}
 		}
+
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
 	}
 
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(name), utils.Capitalize(layer)))
@@ -954,9 +962,9 @@ func GetGrpcServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"fmt\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/%s/cmd/grpc_server/interceptor\"", module, "test12345"))
+	data.WriteString(fmt.Sprintf("\t\"%s/cmd/grpc_server/interceptor\"", module))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/%s/cmd/grpc_server/middleware\"", module, "test12345"))
+	data.WriteString(fmt.Sprintf("\t\"%s/cmd/grpc_server/middleware\"", module))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
 	data.WriteString(separator)
@@ -1273,9 +1281,9 @@ func GetHttpServerTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"fmt\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/%s/cmd/http_server/interceptor\"", module, "test12345"))
+	data.WriteString(fmt.Sprintf("\t\"%s/cmd/http_server/interceptor\"", module))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/%s/cmd/http_server/middleware\"", module, "test12345"))
+	data.WriteString(fmt.Sprintf("\t\"%s/cmd/http_server/middleware\"", module))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\"github.com/gorilla/mux\""))
 	data.WriteString(separator)
@@ -1600,6 +1608,64 @@ func GetNatsSubscriberTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t<-channel"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetCronSchedulerTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package cron_scheduler"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"github.com/robfig/cron/v3\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"log\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"os\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"os/signal\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\"syscall\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func Run() {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("c := cron.New()"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("log.Printf(\"cron started\\n\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("c.Start()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("defer c.Stop()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("exit := make(chan os.Signal)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("signal.Notify(exit, syscall.SIGINT)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("<-exit"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGoTemplate(module string, version string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("module %s", module))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("go %s", version))
 	data.WriteString(separator)
 
 	return data.Bytes()

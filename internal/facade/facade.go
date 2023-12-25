@@ -1040,7 +1040,7 @@ func CreateHttpServer(wd string, module string) error {
 	return nil
 }
 
-func CreateApplication(wd string, module, application string, name string, implementing string) error {
+func CreateApplication(wd string, module string, application string, name string, implementing string) error {
 	kind := "cmd"
 	extension := "go"
 
@@ -1102,6 +1102,78 @@ func CreateNatsSubscriber(wd string) error {
 	}
 
 	data := template.GetNatsSubscriberTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateCronScheduler(wd string) error {
+	kind := "cmd"
+	folder := "cron_scheduler"
+	name := "cron_scheduler"
+	extension := "go"
+
+	directory := path.Join(wd, kind, folder)
+	filename := utils.GetFilename(name, extension)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetCronSchedulerTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateGo(wd string, module string, version string) error {
+	name := "go"
+	extension := "mod"
+
+	directory := path.Join(wd)
+	filename := utils.GetFilename(name, extension)
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetGoTemplate(module, version)
 
 	err = utils.SetFileData(filepath, data)
 

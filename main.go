@@ -18,8 +18,23 @@ func main() {
 	//a.Run()
 
 	wd, _ := utils.GetWorkDirectory()
-	wd = path.Join(wd, "test12345")
+	wd = path.Join(wd, "test")
 
+	module := "github.com/rafailovalexey/service-test"
+	version := "1.19"
+
+	name := "employees"
+
+	application := "application"
+	//application := "subscriber"
+	//application := "cron"
+
+	implementing := "grpc_server"
+	//implementing := "http_server"
+	//implementing := "cron_scheduler"
+	//implementing := "nats_subscriber"
+
+	_ = facade.CreateGo(wd, module, version)
 	_ = facade.CreateReadme(wd)
 	_ = facade.CreateGitIgnore(wd)
 	_ = facade.CreateExampleEnvironment(wd)
@@ -31,17 +46,9 @@ func main() {
 	_ = facade.CreateGrpcLoggingInterceptor(wd)
 	_ = facade.CreateGrpcTracingInterceptor(wd)
 	_ = facade.CreateGrpcAuthenticationMiddleware(wd)
-	_ = facade.CreateGrpcServer(wd)
-	_ = facade.CreateProvider(wd, "employees")
-	_ = facade.CreateProviderInterface(wd, "employees")
-	_ = facade.CreateImplementation(wd, "employees")
-	_ = facade.CreateApplication(wd, "application", "employees", "grpc_server")
-
-	//_ = facade.CreateDefaultMicroserviceMakefile()
-	//_ = facade.CreateDockerWithoutPort()
-	//_ = facade.CreateHttpLoggingInterceptor()
-	//_ = facade.CreateHttpAuthenticationMiddleware()
-	//_ = facade.CreateHttpCorsMiddleware()
-	//_ = facade.CreateHttpChainMiddleware()
-	//_ = facade.CreateHttpServer()
+	_ = facade.CreateGrpcServer(wd, module)
+	_ = facade.CreateProvider(wd, module, name)
+	_ = facade.CreateProviderInterface(wd, module, name)
+	_ = facade.CreateImplementation(wd, name)
+	_ = facade.CreateApplication(wd, module, application, name, implementing)
 }

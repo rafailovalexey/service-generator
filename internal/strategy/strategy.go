@@ -7,14 +7,14 @@ import (
 )
 
 type GenerationStrategyInterface interface {
-	Generate(string, string) error
+	Generate(string, string, string) error
 }
 
 type DataTransferObjectGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*DataTransferObjectGenerationStrategy)(nil)
 
-func (d *DataTransferObjectGenerationStrategy) Generate(layer string, name string) error {
+func (d *DataTransferObjectGenerationStrategy) Generate(_ string, layer string, name string) error {
 	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
@@ -34,7 +34,7 @@ type RealisationGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*RealisationGenerationStrategy)(nil)
 
-func (r *RealisationGenerationStrategy) Generate(layer string, name string) error {
+func (r *RealisationGenerationStrategy) Generate(module string, layer string, name string) error {
 	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (r *RealisationGenerationStrategy) Generate(layer string, name string) erro
 		return err
 	}
 
-	err = facade.CreateRealisationInterface(wd, layer, name)
+	err = facade.CreateRealisationInterface(wd, module, layer, name)
 
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ type IncomingGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*IncomingGenerationStrategy)(nil)
 
-func (c *IncomingGenerationStrategy) Generate(layer string, name string) error {
+func (c *IncomingGenerationStrategy) Generate(module string, layer string, name string) error {
 	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
@@ -73,7 +73,7 @@ func (c *IncomingGenerationStrategy) Generate(layer string, name string) error {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateRealisationInterface(wd, layer, name)
+	err = facade.CreateRealisationInterface(wd, module, layer, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
@@ -98,20 +98,20 @@ type ProviderGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*ProviderGenerationStrategy)(nil)
 
-func (c *ProviderGenerationStrategy) Generate(_ string, name string) error {
+func (c *ProviderGenerationStrategy) Generate(module string, _ string, name string) error {
 	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
 		return err
 	}
 
-	err = facade.CreateProviderInterface(wd, name)
+	err = facade.CreateProviderInterface(wd, module, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
 	}
 
-	err = facade.CreateProvider(wd, name)
+	err = facade.CreateProvider(wd, module, name)
 
 	if err != nil {
 		log.Panicf("%v\n", err)
@@ -124,7 +124,7 @@ type ImplementationGenerationStrategy struct{}
 
 var _ GenerationStrategyInterface = (*ImplementationGenerationStrategy)(nil)
 
-func (c *ImplementationGenerationStrategy) Generate(_ string, name string) error {
+func (c *ImplementationGenerationStrategy) Generate(_ string, _ string, name string) error {
 	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
