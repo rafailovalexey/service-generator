@@ -15,7 +15,7 @@ func GetInterfaceTemplate(layer string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface any", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -51,7 +51,7 @@ func GetRealisationInterfaceTemplate(module string, kind string, layer string, n
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -140,7 +140,7 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 	for _, l := range layers {
 		switch l {
 		case "implementation":
-			imports = append(imports, fmt.Sprintf("\"%s/%s/%s/%s\"", module, kind, l, name))
+			imports = append(imports, fmt.Sprintf("%s%s \"%s/%s/%s/%s\"", utils.SingularForm(name), utils.Capitalize(l), module, kind, l, name))
 		default:
 			imports = append(imports, fmt.Sprintf("\"%s/%s/%s\"", module, kind, l))
 		}
@@ -177,7 +177,7 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 		for _, l := range layers {
 			switch l {
 			case "implementation":
-				data.WriteString(fmt.Sprintf("\tGet%s%s() *%s.%sImplementation", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), name, utils.Capitalize(utils.SingularForm(name))))
+				data.WriteString(fmt.Sprintf("\tGet%s%s() *%s%s.%sImplementation", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), utils.SingularForm(name), utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name))))
 				data.WriteString(separator)
 			default:
 				data.WriteString(fmt.Sprintf("\tGet%s%s() %s.%s%sInterface", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), l, utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
@@ -203,10 +203,10 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	for _, l := range layers {
 		switch l {
 		case "implementation":
-			imports = append(imports, fmt.Sprintf("\"%s/%s/implementation/%s\"", module, kind, name))
+			imports = append(imports, fmt.Sprintf("%s%s \"%s/%s/implementation/%s\"", utils.SingularForm(name), utils.Capitalize(l), module, kind, name))
 		default:
 			imports = append(imports, fmt.Sprintf("\"%s/%s/%s\"", module, kind, l))
-			imports = append(imports, fmt.Sprintf("%s%s \"%s/%s/%s/%s\"", name, utils.Capitalize(l), module, kind, l, name))
+			imports = append(imports, fmt.Sprintf("%s%s \"%s/%s/%s/%s\"", utils.SingularForm(name), utils.Capitalize(l), module, kind, l, name))
 		}
 	}
 
@@ -240,10 +240,10 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 		for _, l := range layers {
 			switch l {
 			case "implementation":
-				data.WriteString(fmt.Sprintf("\t%s%s *%s.%sImplementation", name, utils.Capitalize(l), name, utils.Capitalize(utils.SingularForm(name))))
+				data.WriteString(fmt.Sprintf("\t%s%s *%s%s.%s%s", utils.SingularForm(name), utils.Capitalize(l), utils.SingularForm(name), utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
 				data.WriteString(separator)
 			default:
-				data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", name, utils.Capitalize(l), l, utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
+				data.WriteString(fmt.Sprintf("\t%s%s %s.%s%sInterface", utils.SingularForm(name), utils.Capitalize(l), l, utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
 				data.WriteString(separator)
 			}
 		}
@@ -268,17 +268,17 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 		switch l {
 		case "implementation":
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() *%s.%sImplementation {", utils.FirstLetter(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), name, utils.Capitalize(utils.SingularForm(name))))
+			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() *%s%s.%sImplementation {", utils.FirstLetter(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), utils.SingularForm(name), utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name))))
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l)))
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s.New%s%s()", utils.FirstLetter(layer), name, utils.Capitalize(l), name, utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l), utils.SingularForm(name), utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("\t}"))
 			data.WriteString(separator)
 			data.WriteString(separator)
 
-			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l)))
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("}"))
 			data.WriteString(separator)
@@ -286,15 +286,15 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("func (%s *%s%s) Get%s%s() %s.%s%sInterface {", utils.FirstLetter(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l), l, utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\tif %s.%s%s == nil {", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l)))
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", utils.FirstLetter(layer), name, utils.Capitalize(l), name, utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\t\t%s.%s%s = %s%s.New%s%s()", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l), utils.SingularForm(name), utils.Capitalize(l), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(l)))
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("\t}"))
 			data.WriteString(separator)
 			data.WriteString(separator)
 
-			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), name, utils.Capitalize(l)))
+			data.WriteString(fmt.Sprintf("\treturn %s.%s%s", utils.FirstLetter(layer), utils.SingularForm(name), utils.Capitalize(l)))
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("}"))
 			data.WriteString(separator)
@@ -1641,7 +1641,7 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", name, utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
@@ -1659,7 +1659,7 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.%sHandle)))", name, name, utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.%sHandle)))", name, utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(utils.ResponseNotFound)))"))
 	data.WriteString(separator)
@@ -1711,7 +1711,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 		"\"github.com/joho/godotenv\"",
 		fmt.Sprintf("\"%s/cmd/%s\"", module, implementing),
 		fmt.Sprintf("\"%s/internal/provider\"", module),
-		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name, module, name),
+		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", utils.SingularForm(name), module, name),
 	}
 
 	sort.Strings(imports)
@@ -1748,7 +1748,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 
 	data.WriteString(fmt.Sprintf("type %s struct {", utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name, utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -1838,7 +1838,7 @@ func GetApplicationTemplate(module string, application string, name string, impl
 
 	data.WriteString(fmt.Sprintf("func (%s *%s) InitializeProvider(_ context.Context) error {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), name, name, utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), utils.SingularForm(name), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -1853,28 +1853,28 @@ func GetApplicationTemplate(module string, application string, name string, impl
 
 	switch implementing {
 	case "grpc_server":
-		data.WriteString(fmt.Sprintf("\timplementation := %s.%sProvider.Get%sImplementation()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\timplementation := %s.%sProvider.Get%sImplementation()", utils.FirstLetter(application), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", implementing))
 		data.WriteString(separator)
 	case "http_server":
-		data.WriteString(fmt.Sprintf("\thandler := %s.%sProvider.Get%sHandler()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\thandler := %s.%sProvider.Get%sHandler()", utils.FirstLetter(application), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", implementing))
 		data.WriteString(separator)
 	case "nats_subscribe":
-		data.WriteString(fmt.Sprintf("\tcontroller := %s.%sProvider.Get%sController()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\tcontroller := %s.%sProvider.Get%sController()", utils.FirstLetter(application), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(controller)", implementing))
 		data.WriteString(separator)
 	case "cron_schedule":
-		data.WriteString(fmt.Sprintf("\tservice  := %s.%sProvider.Get%sService()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\tservice  := %s.%sProvider.Get%sService()", utils.FirstLetter(application), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
