@@ -297,7 +297,7 @@ func CreateProviderInterface(wd string, module string, name string) error {
 	return nil
 }
 
-func CreateImplementation(wd string, name string) error {
+func CreateImplementation(wd string, module string, name string) error {
 	layer := "implementation"
 
 	directory := path.Join(wd, "internal", layer, name)
@@ -320,7 +320,7 @@ func CreateImplementation(wd string, name string) error {
 		return err
 	}
 
-	data := template.GetImplementationRealisationTemplate(layer, name)
+	data := template.GetImplementationRealisationTemplate(module, layer, name)
 
 	err = utils.SetFileData(filepath, data)
 

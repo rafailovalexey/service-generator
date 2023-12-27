@@ -74,8 +74,8 @@ func GenerateProvider(wd string, module string, name string) error {
 	return nil
 }
 
-func GenerateImplementation(wd string, name string) error {
-	err := facade.CreateImplementation(wd, name)
+func GenerateImplementation(wd string, module string, name string) error {
+	err := facade.CreateImplementation(wd, module, name)
 
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func GenerateGrpcApplication(wd string, module string, name string) error {
 		return err
 	}
 
-	err = facade.CreateImplementation(wd, name)
+	err = facade.CreateImplementation(wd, module, name)
 
 	if err != nil {
 		return err
