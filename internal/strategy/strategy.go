@@ -149,6 +149,18 @@ func GenerateGrpcApplication(wd string, module string, name string) error {
 		return err
 	}
 
+	err = facade.CreateUtilsDatabase(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsNatsPublisher(wd)
+
+	if err != nil {
+		return err
+	}
+
 	err = facade.CreateProto(wd, module, name)
 
 	if err != nil {
@@ -272,6 +284,18 @@ func GenerateHttpApplication(wd string, module string, name string) error {
 	}
 
 	err = facade.CreateUtilsConvertError(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsDatabase(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsNatsPublisher(wd)
 
 	if err != nil {
 		return err
@@ -411,6 +435,18 @@ func GenerateSubscribeApplication(wd string, module string, name string) error {
 		return err
 	}
 
+	err = facade.CreateUtilsDatabase(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsNatsPublisher(wd)
+
+	if err != nil {
+		return err
+	}
+
 	err = facade.CreateInterface(wd, "controller", name)
 
 	if err != nil {
@@ -510,6 +546,18 @@ func GenerateCronApplication(wd string, module string, name string) error {
 	}
 
 	err = facade.CreateMockGenerateShellScript(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsDatabase(wd)
+
+	if err != nil {
+		return err
+	}
+
+	err = facade.CreateUtilsNatsPublisher(wd)
 
 	if err != nil {
 		return err

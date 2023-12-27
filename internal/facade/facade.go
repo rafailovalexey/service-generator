@@ -1298,3 +1298,67 @@ func CreateUtilsResponse(wd string) error {
 
 	return nil
 }
+
+func CreateUtilsDatabase(wd string) error {
+	directory := path.Join(wd, "utils")
+	filename := utils.GetFilename("database", "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetUtilsDatabaseTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateUtilsNatsPublisher(wd string) error {
+	directory := path.Join(wd, "utils")
+	filename := utils.GetFilename("nats_publisher", "go")
+	filepath := path.Join(directory, filename)
+
+	isExist := utils.PathIsExist(directory)
+
+	if !isExist {
+		err := utils.CreateDirectory(directory)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := utils.CreateFile(filepath)
+
+	if err != nil {
+		return err
+	}
+
+	data := template.GetUtilsNatsPublisherTemplate()
+
+	err = utils.SetFileData(filepath, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

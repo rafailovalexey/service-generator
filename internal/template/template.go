@@ -2281,6 +2281,18 @@ func GetUtilsResponseTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("func ResponseBadRequest(response http.ResponseWriter, message string) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusBadRequest)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(ConvertError(message))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func ResponseNotFound(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
@@ -2303,6 +2315,301 @@ func GetUtilsResponseTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetUtilsDatabaseTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"os\"",
+		"\"fmt\"",
+		"\"log\"",
+		"\"context\"",
+		"\"github.com/jackc/pgx/v4/pgxpool\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type DatabaseInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitialize()"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tGetPool() *pgxpool.Pool"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type Database struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tcredentials string"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ DatabaseInterface = (*Database)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewDatabase() *Database {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdb := &Database{}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tdb.Initialize()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn db"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (d *Database) Initialize() {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tusername := os.Getenv(\"POSTGRESQL_USERNAME\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif username == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the database user\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tpassword := os.Getenv(\"POSTGRESQL_PASSWORD\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif password == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the database user password\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tdb := os.Getenv(\"POSTGRESQL_DATABASE\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif db == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"ndicate the name of the database\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"POSTGRESQL_HOSTNAME\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif hostname == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the database hostname\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"POSTGRESQL_PORT\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the database port\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tsslmode := os.Getenv(\"POSTGRESQL_SSLMODE\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif sslmode == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the ssl mode of the database\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\td.credentials = fmt.Sprintf(\"user=%s password=%s dbname=%s host=%s port=%s sslmode=%s\", username, password, db, hostname, port, sslmode)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (d *Database) GetPool() *pgxpool.Pool {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tpool, err := pgxpool.Connect(context.Background(), d.credentials)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error %v\\n\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn pool"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetUtilsNatsPublisherTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"os\"",
+		"\"log\"",
+		"\"github.com/nats-io/stan.go\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type NatsPublisherInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitialize()"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tGetConnect() stan.Conn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type NatsPublisher struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\turl string"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tcluster string"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ NatsPublisherInterface = (*NatsPublisher)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewNatsPublisher() *NatsPublisher {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tpb := &NatsPublisher{}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tpb.Initialize()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn pb"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (p *NatsPublisher) Initialize() {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\turl := os.Getenv(\"NATS_URL\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif url == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify nats url\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tp.url = url"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tcluster := os.Getenv(\"NATS_CLUSTER_ID\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif cluster == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the cluster id\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tp.cluster = cluster"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (p *NatsPublisher) GetConnect() stan.Conn {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tsc, err := stan.Connect(p.cluster, \"publisher-1\", stan.NatsURL(p.url))"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error %v\\n\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn sc"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 
 	return data.Bytes()
 }
