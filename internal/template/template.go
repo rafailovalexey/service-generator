@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/rafailovalexey/service-generator/internal/utils"
+	"sort"
 )
 
 func GetInterfaceTemplate(layer string, name string) []byte {
@@ -13,7 +14,8 @@ func GetInterfaceTemplate(layer string, name string) []byte {
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
+
+	data.WriteString(fmt.Sprintf("type %s%sInterface any", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -23,14 +25,24 @@ func GetRealisationInterfaceTemplate(module string, kind string, layer string, n
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		fmt.Sprintf("definition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -60,12 +72,15 @@ func GetDataTransferObjectTemplate(layer string, name string) []byte {
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("type %s%s struct {}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("type %s%s = []%s%s", utils.Capitalize(name), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
@@ -73,11 +88,13 @@ func GetDataTransferObjectTemplate(layer string, name string) []byte {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func New%s%s(%s ...%s%s) *%s%s {", utils.Capitalize(name), utils.Capitalize(layer), utils.Lowercase(name), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Capitalize(name), utils.Capitalize(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s := make([]%s%s, len(%s))", utils.Lowercase(layer), utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer), utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tfor _, %s := range %s {", utils.Lowercase(utils.SingularForm(name)), utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t%s = append(%s, %s)", utils.Lowercase(layer), utils.Lowercase(layer), utils.Lowercase(utils.SingularForm(name))))
@@ -85,6 +102,7 @@ func GetDataTransferObjectTemplate(layer string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn &%s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -117,6 +135,19 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := make([]string, 0, 10)
+
+	for _, l := range layers {
+		switch l {
+		case "implementation":
+			imports = append(imports, fmt.Sprintf("\"%s/%s/%s/%s\"", module, kind, l, name))
+		default:
+			imports = append(imports, fmt.Sprintf("\"%s/%s/%s\"", module, kind, l))
+		}
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -125,15 +156,9 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 		data.WriteString(fmt.Sprintf("import ("))
 		data.WriteString(separator)
 
-		for _, l := range layers {
-			switch l {
-			case "implementation":
-				data.WriteString(fmt.Sprintf("\t\"%s/%s/%s/%s\"", module, kind, l, name))
-				data.WriteString(separator)
-			default:
-				data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", module, kind, l))
-				data.WriteString(separator)
-			}
+		for _, i := range imports {
+			data.WriteString(fmt.Sprintf("\t%s", i))
+			data.WriteString(separator)
 		}
 
 		data.WriteString(fmt.Sprintf(")"))
@@ -143,7 +168,7 @@ func GetProviderInterfaceTemplate(module string, kind string, layer string, name
 
 	switch len(layers) {
 	case 0:
-		data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
+		data.WriteString(fmt.Sprintf("type %s%sInterface any", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
 		data.WriteString(separator)
 	default:
 		data.WriteString(fmt.Sprintf("type %s%sInterface interface {", utils.Capitalize(utils.SingularForm(name)), utils.Capitalize(layer)))
@@ -171,6 +196,22 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		fmt.Sprintf("definition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)),
+	}
+
+	for _, l := range layers {
+		switch l {
+		case "implementation":
+			imports = append(imports, fmt.Sprintf("\"%s/%s/implementation/%s\"", module, kind, name))
+		default:
+			imports = append(imports, fmt.Sprintf("\"%s/%s/%s\"", module, kind, l))
+			imports = append(imports, fmt.Sprintf("%s%s \"%s/%s/%s/%s\"", name, utils.Capitalize(l), module, kind, l, name))
+		}
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -178,20 +219,9 @@ func GetProviderRealisationTemplate(module string, kind string, layer string, na
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)))
-	data.WriteString(separator)
-
-	for _, l := range layers {
-		switch l {
-		case "implementation":
-			data.WriteString(fmt.Sprintf("\t\"%s/%s/implementation/%s\"", module, kind, name))
-			data.WriteString(separator)
-		default:
-			data.WriteString(fmt.Sprintf("\t\"%s/%s/%s\"", module, kind, l))
-			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\t%s%s \"%s/%s/%s/%s\"", name, utils.Capitalize(l), module, kind, l, name))
-			data.WriteString(separator)
-		}
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
 	}
 
 	data.WriteString(fmt.Sprintf(")"))
@@ -278,14 +308,24 @@ func GetImplementationRealisationTemplate(module string, layer string, name stri
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/pkg/%s_v1\"", module, name))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -320,14 +360,24 @@ func GetHandlerInterfaceTemplate(layer string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -346,18 +396,26 @@ func GetHandlerRealisationTemplate(module string, kind string, layer string, nam
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		fmt.Sprintf("\"%s/utils\"", module),
+		fmt.Sprintf("\"net/http\""),
+		fmt.Sprintf("definition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", utils.Lowercase(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/utils\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdefinition \"%s/%s/%s\"", module, kind, utils.Lowercase(layer)))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -387,6 +445,7 @@ func GetHandlerRealisationTemplate(module string, kind string, layer string, nam
 	data.WriteString(fmt.Sprintf("\t\tutils.ResponseMethodNotAllowed(response, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\treturn"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -458,6 +517,7 @@ func GetExampleEnvironmentTemplate(application string) []byte {
 		data.WriteString(fmt.Sprintf("PORT = \"port\""))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("AUTHENTICATION_TOKEN_HEADER = \"header\""))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("AUTHENTICATION_TOKEN = \"token\""))
@@ -474,47 +534,63 @@ func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("PROTO_SOURCE_DIRECTORY = api"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("PROTO_OUTPUT_DIRECTORY = pkg"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("PROTO_FILES = \\"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", name, name))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY = mocks"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("MOCKS_FILES = \\"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# GRPC"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("grpc-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Generating GRPC...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@bin/grpc-generate.sh $(PROTO_SOURCE_DIRECTORY) $(PROTO_OUTPUT_DIRECTORY) $(PROTO_FILES)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Mocks"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("mock-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Generating Mocks...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@bin/mock-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Generate"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("generate: grpc-generate mock-generate"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("download:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Downloading dependencies...\""))
@@ -522,9 +598,11 @@ func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data.WriteString(fmt.Sprintf("\t@go mod download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Build"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("build:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Building...\""))
@@ -532,9 +610,11 @@ func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data.WriteString(fmt.Sprintf("\t@go build -o build/main main.go"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Tests"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("tests:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Running tests...\""))
@@ -542,6 +622,7 @@ func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data.WriteString(fmt.Sprintf("\t@go test -v ./..."))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
@@ -555,29 +636,39 @@ func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY = mocks"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("MOCKS_FILES = \\"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Mocks"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("mock-generate:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Generating Mocks...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@bin/mock-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Generate"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("generate: mock-generate"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("download:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Downloading dependencies...\""))
@@ -585,9 +676,11 @@ func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t@go mod download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Build"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("build:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Building...\""))
@@ -595,9 +688,11 @@ func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t@go build -o build/main main.go"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Tests"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("tests:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Running tests...\""))
@@ -605,6 +700,7 @@ func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t@go test -v ./..."))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf(".PHONY: mock-generate, generate, download, build, tests"))
 	data.WriteString(separator)
 
@@ -648,31 +744,39 @@ func GetDockerWithPortTemplate() []byte {
 	data.WriteString(fmt.Sprintf("FROM golang:latest"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("COPY . ."))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN make download"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("RUN make build"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("EXPOSE 3000"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
@@ -686,28 +790,35 @@ func GetDockerWithoutPortTemplate() []byte {
 	data.WriteString(fmt.Sprintf("FROM golang:latest"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("COPY . ."))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("RUN make download"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("RUN make build"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
 	data.WriteString(separator)
 
@@ -721,6 +832,7 @@ func GetGrpcGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("#!/bin/bash"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("if [ \"$#\" -lt 2 ]; then"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\techo \"Usage: $0 <PROTO_SOURCE_DIRECTORY> <PROTO_OUTPUT_DIRECTORY> <PROTO_FILES>\""))
@@ -730,6 +842,7 @@ func GetGrpcGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("fi"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("PROTO_SOURCE_DIRECTORY=\"$1\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("PROTO_OUTPUT_DIRECTORY=\"$2\""))
@@ -737,20 +850,21 @@ func GetGrpcGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("PROTO_FILES=\"${*:3}\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("echo \"Generating GRPC...\""))
-	data.WriteString(separator)
-	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("for proto_file in $PROTO_FILES; do"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tPROTO_FILE_DIRECTORY=$(dirname \"$proto_file\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tmkdir -p \"$PROTO_OUTPUT_DIRECTORY/$PROTO_FILE_DIRECTORY\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\techo \"Generating proto file for $proto_file...\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tprotoc \\"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t--proto_path=\"$PROTO_SOURCE_DIRECTORY\" \\"))
@@ -776,6 +890,7 @@ func GetMockGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("#!/bin/bash"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("if [ \"$#\" -lt 1 ]; then"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\techo \"Usage: $0 <MOCKS_OUTPUT_DIRECTORY> <MOCKS_FILES>\""))
@@ -785,14 +900,13 @@ func GetMockGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("fi"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("MOCKS_OUTPUT_DIRECTORY=\"$1\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("MOCKS_FILES=\"${*:2}\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("echo \"Generating Mocks...\""))
-	data.WriteString(separator)
-	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("for mock_file in $MOCKS_FILES; do"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tDIRECTORY=$(dirname \"$mock_file\")"))
@@ -800,6 +914,7 @@ func GetMockGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\tFILENAME=$(basename \"$mock_file\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tEXTENSION=\"${FILENAME##*.}\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\tFILENAME_WITHOUT_EXTENSIONS=\"${FILENAME%.*}\""))
@@ -807,12 +922,15 @@ func GetMockGenerateShellScriptTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\tOUTPUT_PATH=\"$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY/${FILENAME_WITHOUT_EXTENSIONS}_mock.$EXTENSION\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tmkdir -p \"$DIRECTORY/$MOCKS_OUTPUT_DIRECTORY\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\techo \"Generating mock file for $mock_file...\""))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tmockgen -source=\"$mock_file\" -destination=\"$OUTPUT_PATH\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("done"))
@@ -825,26 +943,33 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"context\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package interceptor"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"context\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/codes\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/metadata\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/status\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func LoggingInterceptor() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
@@ -852,6 +977,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
@@ -859,15 +985,19 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\ttrace := md[\"trace\"][0]"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"incoming grpc request: %s (%s)\", info.FullMethod, trace)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tresponse, err := handler(ctx, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, trace, err)"))
@@ -875,6 +1005,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif err == nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"outgoing grpc response %s (%s)\", info.FullMethod, trace)"))
@@ -882,6 +1013,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\treturn response, err"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -896,30 +1028,35 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"context\"",
+		"\"crypto/rand\"",
+		"\"encoding/hex\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package interceptor"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"context\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"crypto/rand\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"encoding/hex\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/codes\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/metadata\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/status\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func TracingInterceptor() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
@@ -927,16 +1064,19 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tlog.Printf(\"metadata not found in the request context\\n\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif len(md[\"trace\"]) != 0 {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\treturn handler(ctx, request)"))
@@ -944,9 +1084,11 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\ttrace, err := GenerateTrace()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to generate trace\")"))
@@ -954,11 +1096,13 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tmd = metadata.Join(md, metadata.New(map[string]string{\"trace\": trace}))"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tctx = metadata.NewIncomingContext(ctx, md)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\treturn handler(ctx, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -966,11 +1110,13 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func GenerateTrace() (string, error) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\ttrace := make([]byte, 16)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif _, err := rand.Read(trace); err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn \"\", err"))
@@ -978,6 +1124,7 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn hex.EncodeToString(trace), nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -990,28 +1137,34 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"context\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package middleware"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"context\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/codes\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/metadata\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/status\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
@@ -1019,6 +1172,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Unauthenticated, \"authentication token not found\")"))
@@ -1026,9 +1180,11 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token header in environment\")"))
@@ -1036,9 +1192,11 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tlist := md[header]"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif len(list) == 0 {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Unauthenticated, \"authentication token not found\")"))
@@ -1046,12 +1204,15 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tkey := list[0]"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token in environment\")"))
@@ -1059,16 +1220,19 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif token != key {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"invalid authentication token: %s\", key)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.PermissionDenied, \"invalid authentication token\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\treturn handler(ctx, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -1083,32 +1247,36 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"fmt\"",
+		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
+		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name),
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/reflection\"",
+		"\"log\"",
+		"\"net\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package grpc_server"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"fmt\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/grpc_server/interceptor\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/grpc_server/middleware\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/pkg/%s_v1\"", module, name))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"google.golang.org/grpc/reflection\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
@@ -1116,6 +1284,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the port\")"))
@@ -1123,15 +1292,19 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server starts at address %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tlistener, err := net.Listen(\"tcp\", address)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
@@ -1139,6 +1312,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tserver := grpc.NewServer("))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tgrpc.ChainUnaryInterceptor("))
@@ -1154,18 +1328,23 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treflection.Register(server)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server is running at %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\terr = server.Serve(listener)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
@@ -1185,17 +1364,27 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("package interceptor"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
+	imports := []string{
+		"\"log\"",
+		"\"net/http\"",
+		"\"time\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"time\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func LoggingInterceptor(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
@@ -1203,12 +1392,15 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\tstart := time.Now()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tduration := time.Since(start)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Path, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
@@ -1223,22 +1415,31 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		fmt.Sprintf("\"%s/utils\"", module),
+		"\"log\"",
+		"\"net/http\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package middleware"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/utils\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
@@ -1246,6 +1447,7 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the name of the authentication token\")"))
@@ -1253,9 +1455,11 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the value of the authentication token\")"))
@@ -1263,9 +1467,11 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tkey := request.Header.Get(header)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif key != token {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
@@ -1275,11 +1481,13 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data.WriteString(fmt.Sprintf("\t\t\tresponse.Write(utils.ConvertError(\"unauthorized\"))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\t\treturn"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
@@ -1294,16 +1502,28 @@ func GetHttpCorsMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package middleware"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func CorsMiddleware(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
@@ -1317,16 +1537,19 @@ func GetHttpCorsMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Credentials\", \"true\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif request.Method == \"OPTIONS\" {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tresponse.WriteHeader(http.StatusOK)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\t\treturn"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
@@ -1341,16 +1564,28 @@ func GetHttpChainMiddlewareTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package middleware"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func ChainMiddleware(middlewares ...func(http.Handler) http.Handler) func(http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(next http.Handler) http.Handler {"))
@@ -1362,6 +1597,7 @@ func GetHttpChainMiddlewareTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\treturn next"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -1376,35 +1612,41 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"fmt\"",
+		"\"log\"",
+		"\"net/http\"",
+		"\"os\"",
+		fmt.Sprintf("\"%s/internal/handler\"", module),
+		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", module),
+		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", module),
+		fmt.Sprintf("\"%s/utils\"", module),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package http_server"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"fmt\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/internal/handler\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/http_server/interceptor\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/http_server/middleware\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/utils\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tinterceptor.LoggingInterceptor,"))
@@ -1416,11 +1658,13 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.%sHandle)))", name, name, utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(utils.ResponseNotFound)))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
@@ -1433,15 +1677,19 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprint("\tlog.Printf(\"http server starts at address %s\\n\", address)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\terr := http.ListenAndServe(address, router)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error when starting the http server %v\\n\", err)"))
@@ -1458,24 +1706,32 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"context\"",
+		"\"github.com/joho/godotenv\"",
+		fmt.Sprintf("\"%s/cmd/%s\"", module, implementing),
+		fmt.Sprintf("\"%s/internal/provider\"", module),
+		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name, module, name),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package %s", application))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"context\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/%s\"", module, implementing))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/internal/provider\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"github.com/joho/godotenv\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider \"%s/internal/provider/%s\"", name, module, name))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("type %sInterface interface {", utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tInitializeDependency(context.Context) error"))
@@ -1489,24 +1745,29 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("type %s struct {", utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name, utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name, utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("var _ %sInterface = (*%s)(nil)", utils.Capitalize(application), utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func New%s(ctx context.Context) (*%s, error) {", utils.Capitalize(application), utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s := &%s{}", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\terr := %s.InitializeDependency(ctx)", utils.FirstLetter(application)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn nil, err"))
@@ -1514,11 +1775,13 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn %s, nil", utils.FirstLetter(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func (%s *%s) InitializeDependency(ctx context.Context) error {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tinits := []func(context.Context) error{"))
@@ -1530,11 +1793,13 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tfor _, function := range inits {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\terr := function(ctx)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn err"))
@@ -1544,16 +1809,19 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func (%s *%s) InitializeEnvironment(_ context.Context) error {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\terr := godotenv.Load(\".env\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn err"))
@@ -1561,16 +1829,19 @@ func GetApplicationTemplate(module string, application string, name string, impl
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func (%s *%s) InitializeProvider(_ context.Context) error {", utils.FirstLetter(application), utils.Capitalize(application)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), name, name, utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\t%s.%sProvider = %sProvider.New%sProvider()", utils.FirstLetter(application), name, name, utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -1582,27 +1853,31 @@ func GetApplicationTemplate(module string, application string, name string, impl
 
 	switch implementing {
 	case "grpc_server":
-		data.WriteString(fmt.Sprintf("\timplementation := %s.%sProvider.Get%sImplementation()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(fmt.Sprintf("\timplementation := %s.%sProvider.Get%sImplementation()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", implementing))
 		data.WriteString(separator)
 	case "http_server":
-		data.WriteString(fmt.Sprintf("\thandler := %s.%sProvider.Get%sHandler()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(fmt.Sprintf("\thandler := %s.%sProvider.Get%sHandler()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", implementing))
 		data.WriteString(separator)
 	case "nats_subscribe":
-		data.WriteString(fmt.Sprintf("\tcontroller := %s.%sProvider.Get%sController()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(fmt.Sprintf("\tcontroller := %s.%sProvider.Get%sController()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("\t%s.Run(controller)", implementing))
 		data.WriteString(separator)
 	case "cron_schedule":
-		data.WriteString(fmt.Sprintf("\tservice  := %s.%sProvider.Get%sService()", utils.FirstLetter(application), name, utils.Capitalize(name)))
+		data.WriteString(fmt.Sprintf("\tservice  := %s.%sProvider.Get%sService()", utils.FirstLetter(application), name, utils.Capitalize(utils.SingularForm(name))))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("\t%s.Run(service)", implementing))
 		data.WriteString(separator)
 	default:
@@ -1620,24 +1895,29 @@ func GetNatsSubscriberTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"log\"",
+		"\"os\"",
+		"\"os/signal\"",
+		"\"syscall\"",
+		fmt.Sprintf("\"%s/internal/controller\"", module),
+		fmt.Sprintf("\"github.com/nats-io/stan.go\""),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package nats_subscribe"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/internal/controller\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"github.com/nats-io/stan.go\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os/signal\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"syscall\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -1736,40 +2016,51 @@ func GetCronScheduleTemplate(module string, name string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"log\"",
+		"\"os\"",
+		"\"os/signal\"",
+		"\"syscall\"",
+		"\"github.com/robfig/cron/v3\"",
+		fmt.Sprintf("\"%s/internal/service\"", module),
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package cron_schedule"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/internal/service\"", module))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"github.com/robfig/cron/v3\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"os/signal\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"syscall\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func Run(_ service.%sServiceInterface) {", utils.Capitalize(name)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tc := cron.New()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tlog.Printf(\"cron started\\n\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tc.Start()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tdefer c.Stop()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\texit := make(chan os.Signal)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tsignal.Notify(exit, syscall.SIGINT)"))
@@ -1777,6 +2068,7 @@ func GetCronScheduleTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t<-exit"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tlog.Printf(\"cron stopped\\n\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -1786,32 +2078,43 @@ func GetCronScheduleTemplate(module string, name string) []byte {
 }
 
 func GetMainTemplate(module string, application string) []byte {
-
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"log\"",
+		"\"golang.org/x/net/context\"",
+		fmt.Sprintf("\"%s/cmd/%s\"", module, application),
+	}
+
+	sort.Strings(imports)
 
 	data.WriteString(fmt.Sprintf("package main"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"%s/cmd/%s\"", module, application))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"golang.org/x/net/context\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"log\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func main() {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tctx := context.Background()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t%s, err := %s.New%s(ctx)", utils.FirstLetter(application), application, utils.Capitalize(application)))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"an error occurred while starting the application %v\", err)"))
@@ -1819,6 +2122,7 @@ func GetMainTemplate(module string, application string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\t%s.Run()", utils.FirstLetter(application)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -1834,12 +2138,15 @@ func GetProtoTemplate(module string, kind string, name string) []byte {
 	data.WriteString(fmt.Sprintf("syntax = \"proto3\";"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("package %s_v1;", name))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, kind, name))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("service %sV1 {}", utils.Capitalize(name)))
 	data.WriteString(separator)
 
@@ -1853,6 +2160,7 @@ func GetGoTemplate(module string, version string) []byte {
 	data.WriteString(fmt.Sprintf("module %s", module))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("go %s", version))
 	data.WriteString(separator)
 
@@ -1863,14 +2171,24 @@ func GetUtilsConvertErrorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"encoding/json\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package utils"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"encoding/json\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -1917,14 +2235,24 @@ func GetUtilsResponseTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
 
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
 	data.WriteString(fmt.Sprintf("package utils"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("import ("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\"net/http\""))
-	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf(")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
