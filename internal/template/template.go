@@ -1966,7 +1966,7 @@ func GetNatsSubscriberTemplate(module string, name string) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"error %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error %v\\n\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -1986,7 +1986,7 @@ func GetNatsSubscriberTemplate(module string, name string) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"error %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error %v\\n\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -1996,7 +1996,7 @@ func GetNatsSubscriberTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tlog.Printf(\"subscribed to the message queue %s\\n\", subject)"))
+	data.WriteString(fmt.Sprint("\tlog.Printf(\"subscribed to the message queue %s\\n\", subject)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
