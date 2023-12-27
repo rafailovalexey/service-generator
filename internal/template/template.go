@@ -611,6 +611,18 @@ func GetGrpcMicroserviceMakefileTemplate(name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("# Tidy"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("tidy:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Tidy...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@go mod tidy"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Tests"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -686,6 +698,18 @@ func GetDefaultMicroserviceMakefileTemplate() []byte {
 	data.WriteString(fmt.Sprintf("\t@echo \"Building...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@go build -o build/main main.go"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Tidy"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("tidy:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Tidy...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@go mod tidy"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -1922,7 +1946,7 @@ func GetNatsSubscriberTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(_ controller.%sControllerInterface) {", utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("func Run(_ controller.%sControllerInterface) {", utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tsc := connect()"))
 	data.WriteString(separator)
@@ -2043,7 +2067,7 @@ func GetCronScheduleTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(_ service.%sServiceInterface) {", utils.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("func Run(_ service.%sServiceInterface) {", utils.Capitalize(utils.SingularForm(name))))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tc := cron.New()"))
 	data.WriteString(separator)
