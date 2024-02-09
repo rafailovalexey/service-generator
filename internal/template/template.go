@@ -1425,7 +1425,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Path, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Name, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
