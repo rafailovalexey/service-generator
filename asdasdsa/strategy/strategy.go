@@ -1,7 +1,7 @@
 package strategy
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/facade"
+	"github.com/rafailovalexey/service-generator/asdasdsa/facade"
 )
 
 func GenerateDataTransferObject(wd string, layer string, name string) error {
