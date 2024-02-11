@@ -436,6 +436,28 @@ func GetHttpHandlerImplementationTemplate(module string, name string) []byte {
 	return data.Bytes()
 }
 
+func GetProtoTemplate(module string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("syntax = \"proto3\";"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("package %s_v1;", name))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, "api", name))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("service %sV1 {}", utils.Capitalize(name)))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
 func GetGrpcGenerateShellScriptTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
@@ -679,6 +701,181 @@ func GetGoTemplate(module string, version string) []byte {
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("go %s", version))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetReadmeTemplate(module string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("%s", module))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGitIgnoreTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("# JetBrains"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".idea"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Visual Studio Code"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".vscode"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Environment"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".env"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("*_mock.go"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetEnvironmentTemplate() []byte {
+	data := bytes.Buffer{}
+
+	return data.Bytes()
+}
+
+func GetExampleEnvironmentTemplate() []byte {
+	data := bytes.Buffer{}
+
+	return data.Bytes()
+}
+
+func GetDockerIgnoreTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("# JetBrains"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".idea"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Visual Studio Code"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf(".vscode"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Mocks"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("*_mock.go"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetMainTemplate(module string, application string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	typ := "application"
+
+	switch application {
+	case "http":
+		typ = "application"
+	case "grpc":
+		typ = "application"
+	case "cron":
+		typ = "cron"
+	case "subscriber":
+		typ = "subscriber"
+	case "publisher":
+		typ = "publisher"
+	}
+
+	imports := []string{
+		"\"log\"",
+		"\"golang.org/x/net/context\"",
+		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package main"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func main() {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tctx := context.Background()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t%s, err := %s.New%s(ctx)", utils.FirstLetter(typ), typ, utils.Capitalize(typ)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"an error occurred while starting the application %v\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t%s.Run()", utils.FirstLetter(typ)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 
 	return data.Bytes()

@@ -11,13 +11,12 @@ type Node struct {
 	IsDirectory bool
 	IsFile      bool
 	Name        string
-	Type        string
 	Template    []byte
 	Parent      *[]Node
 }
 
 func main() {
-	application := "grpc"
+	application := "http"
 	module := "github.com/emptyhopes/test"
 	name := "employees"
 	version := "1.20"
@@ -30,338 +29,8 @@ func main() {
 
 	wd = filepath.Join(wd, "test")
 
-	structure := &[]Node{
-		{
-			IsDirectory: true,
-			Name:        "bin",
-			Type:        "core",
-			Parent: &[]Node{
-				{
-					IsFile:   true,
-					Name:     utils.GetFilename("grpc-generate", "sh"),
-					Type:     "core",
-					Template: test.GetGrpcGenerateShellScriptTemplate(),
-				},
-				{
-					IsFile:   true,
-					Name:     utils.GetFilename("mock-generate", "sh"),
-					Type:     "core",
-					Template: test.GetMockGenerateShellScriptTemplate(),
-				},
-			},
-		},
-		{
-			IsDirectory: true,
-			Name:        "internal",
-			Type:        "core",
-			Parent: &[]Node{
-				{
-					IsDirectory: true,
-					Name:        "handler",
-					Type:        "handler",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("handler", "go"),
-							Type:     "handler",
-							Template: test.GetHttpHandlerDefinitionTemplate(name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "handler",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("handler", "go"),
-									Type:     "handler",
-									Template: test.GetHttpHandlerImplementationTemplate(module, name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "implementation",
-					Type:        "implementation",
-					Parent: &[]Node{
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "implementation",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("implementation", "go"),
-									Type:     "implementation",
-									Template: test.GetGrpcServerImplementationTemplate(module, name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "controller",
-					Type:        "controller",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("controller", "go"),
-							Type:     "controller",
-							Template: test.GetBaseDefinitionTemplate("controller", name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "controller",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("controller", "go"),
-									Type:     "controller",
-									Template: test.GetBaseImplementationTemplate(module, "controller", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "converter",
-					Type:        "converter",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("converter", "go"),
-							Type:     "converter",
-							Template: test.GetBaseDefinitionTemplate("converter", name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "converter",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("converter", "go"),
-									Type:     "converter",
-									Template: test.GetBaseImplementationTemplate(module, "converter", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "validation",
-					Type:        "validation",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("validation", "go"),
-							Type:     "validation",
-							Template: test.GetBaseDefinitionTemplate("validation", name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "validation",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("validation", "go"),
-									Type:     "validation",
-									Template: test.GetBaseImplementationTemplate(module, "validation", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "service",
-					Type:        "service",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("service", "go"),
-							Type:     "service",
-							Template: test.GetBaseDefinitionTemplate("service", name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "service",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("service", "go"),
-									Type:     "service",
-									Template: test.GetBaseImplementationTemplate(module, "service", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "repository",
-					Type:        "repository",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("repository", "go"),
-							Type:     "repository",
-							Template: test.GetBaseDefinitionTemplate("repository", name),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "repository",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("repository", "go"),
-									Type:     "repository",
-									Template: test.GetBaseImplementationTemplate(module, "repository", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "dto",
-					Type:        "dto",
-					Parent: &[]Node{
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "dto",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("dto", "go"),
-									Type:     "dto",
-									Template: test.GetDataTransferObjectTemplate("dto", name),
-								},
-							},
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "model",
-					Type:        "model",
-					Parent: &[]Node{
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "model",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("model", "go"),
-									Type:     "model",
-									Template: test.GetDataTransferObjectTemplate("model", name),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			IsFile:   true,
-			Name:     "Makefile",
-			Type:     "core",
-			Template: test.GetMakefileTemplate(application, name),
-		},
-		{
-			IsFile:   true,
-			Name:     "go.mod",
-			Type:     "core",
-			Template: test.GetGoTemplate(module, version),
-		},
-	}
-
-	err = Recursion(wd, structure)
-
-	if err != nil {
-		panic(err)
-	}
-
-	available := map[string]struct{}{
-		"handler":        {},
-		"implementation": {},
-		"api":            {},
-		"controller":     {},
-		"validation":     {},
-		"converter":      {},
-		"service":        {},
-		"repository":     {},
-		"client":         {},
-	}
-
-	directories, err := utils.GetDirectories(filepath.Join(wd, "internal"))
-
-	if err != nil {
-		panic(err)
-	}
-
-	layers := make([]string, 0, 10)
-
-	for _, directory := range directories {
-		if _, isExist := available[directory]; isExist {
-			layers = append(layers, directory)
-		}
-	}
-
-	sort.Strings(layers)
-
-	structure = &[]Node{
-		{
-			IsDirectory: true,
-			Name:        "internal",
-			Type:        "core",
-			Parent: &[]Node{
-				{
-					IsDirectory: true,
-					Name:        "provider",
-					Type:        "provider",
-					Parent: &[]Node{
-						{
-							IsFile:   true,
-							Name:     utils.GetFilename("provider", "go"),
-							Type:     "provider",
-							Template: test.GetProviderDefinitionTemplate(module, name, layers),
-						},
-						{
-							IsDirectory: true,
-							Name:        name,
-							Type:        "provider",
-							Parent: &[]Node{
-								{
-									IsFile:   true,
-									Name:     utils.GetFilename("provider", "go"),
-									Type:     "provider",
-									Template: test.GetProviderImplementationTemplate(module, name, layers),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	err = Recursion(wd, structure)
-
-	if err != nil {
-		panic(err)
-	}
+	Generate(wd, application, version, module, name)
+	Provider(wd, module, name)
 }
 
 func Recursion(path string, nodes *[]Node) error {
@@ -408,4 +77,282 @@ func Recursion(path string, nodes *[]Node) error {
 	}
 
 	return nil
+}
+
+func Generate(wd string, application string, version string, module string, name string) {
+	structure := &[]Node{
+		{
+			IsDirectory: true,
+			Name:        "bin",
+			Parent: &[]Node{
+				{
+					IsFile:   true,
+					Name:     utils.GetFilename("mock-generate", "sh"),
+					Template: test.GetMockGenerateShellScriptTemplate(),
+				},
+			},
+		},
+		{
+			IsDirectory: true,
+			Name:        "internal",
+			Parent: &[]Node{
+				*GetBaseDefinitionAndImplementationStructure(module, "controller", name),
+				*GetBaseDefinitionAndImplementationStructure(module, "validation", name),
+				*GetBaseDefinitionAndImplementationStructure(module, "converter", name),
+				*GetBaseDefinitionAndImplementationStructure(module, "service", name),
+				*GetBaseDefinitionAndImplementationStructure(module, "repository", name),
+				*GetDataTransferObjectStructure("model", name),
+				*GetDataTransferObjectStructure("dto", name),
+			},
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename(".gitignore", ""),
+			Template: test.GetGitIgnoreTemplate(),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename(".dockerignore", ""),
+			Template: test.GetDockerIgnoreTemplate(),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename(".env", ""),
+			Template: test.GetEnvironmentTemplate(),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename(".example.env", ""),
+			Template: test.GetExampleEnvironmentTemplate(),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename("main", "go"),
+			Template: test.GetMainTemplate(module, application),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename("go", "mod"),
+			Template: test.GetGoTemplate(module, version),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename("Makefile", ""),
+			Template: test.GetMakefileTemplate(application, name),
+		},
+		{
+			IsFile:   true,
+			Name:     utils.GetFilename("README", "md"),
+			Template: test.GetReadmeTemplate(module),
+		},
+	}
+
+	switch application {
+	case "grpc":
+		temporary := &[]Node{
+			{
+				IsDirectory: true,
+				Name:        "api",
+				Parent: &[]Node{
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename(name, "proto"),
+						Template: test.GetProtoTemplate(module, name),
+					},
+				},
+			},
+			{
+				IsDirectory: true,
+				Name:        "bin",
+				Parent: &[]Node{
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename("grpc-generate", "sh"),
+						Template: test.GetGrpcGenerateShellScriptTemplate(),
+					},
+				},
+			},
+			{
+				IsDirectory: true,
+				Name:        "internal",
+				Parent: &[]Node{
+					{
+						IsDirectory: true,
+						Name:        "implementation",
+						Parent: &[]Node{
+							{
+								IsDirectory: true,
+								Name:        name,
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("implementation", "go"),
+										Template: test.GetGrpcServerImplementationTemplate(module, name),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		*structure = append(*structure, *temporary...)
+
+	case "http":
+		temporary := &[]Node{
+			{
+				IsDirectory: true,
+				Name:        "internal",
+				Parent: &[]Node{
+					{
+						IsDirectory: true,
+						Name:        "handler",
+						Parent: &[]Node{
+							{
+								IsFile:   true,
+								Name:     utils.GetFilename("handler", "go"),
+								Template: test.GetHttpHandlerDefinitionTemplate(name),
+							},
+							{
+								IsDirectory: true,
+								Name:        name,
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("handler", "go"),
+										Template: test.GetHttpHandlerImplementationTemplate(module, name),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		*structure = append(*structure, *temporary...)
+	}
+
+	err := Recursion(wd, structure)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GetBaseDefinitionAndImplementationStructure(module string, layer string, name string) *Node {
+	structure := &Node{
+		IsDirectory: true,
+		Name:        layer,
+		Parent: &[]Node{
+			{
+				IsFile:   true,
+				Name:     utils.GetFilename(layer, "go"),
+				Template: test.GetBaseDefinitionTemplate(layer, name),
+			},
+			{
+				IsDirectory: true,
+				Name:        name,
+				Parent: &[]Node{
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename(layer, "go"),
+						Template: test.GetBaseImplementationTemplate(module, layer, name),
+					},
+				},
+			},
+		},
+	}
+
+	return structure
+}
+
+func GetDataTransferObjectStructure(layer string, name string) *Node {
+	structure := &Node{
+		IsDirectory: true,
+		Name:        layer,
+		Parent: &[]Node{
+			{
+				IsDirectory: true,
+				Name:        name,
+				Parent: &[]Node{
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename(layer, "go"),
+						Template: test.GetDataTransferObjectTemplate(layer, name),
+					},
+				},
+			},
+		},
+	}
+
+	return structure
+}
+
+func Provider(wd string, module string, name string) {
+	available := map[string]struct{}{
+		"handler":        {},
+		"implementation": {},
+		"api":            {},
+		"controller":     {},
+		"validation":     {},
+		"converter":      {},
+		"service":        {},
+		"repository":     {},
+		"client":         {},
+	}
+
+	directories, err := utils.GetDirectories(filepath.Join(wd, "internal"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	layers := make([]string, 0, 10)
+
+	for _, directory := range directories {
+		if _, isExist := available[directory]; isExist {
+			layers = append(layers, directory)
+		}
+	}
+
+	sort.Strings(layers)
+
+	structure := &[]Node{
+		{
+			IsDirectory: true,
+			Name:        "internal",
+			Parent: &[]Node{
+				{
+					IsDirectory: true,
+					Name:        "provider",
+					Parent: &[]Node{
+						{
+							IsFile:   true,
+							Name:     utils.GetFilename("provider", "go"),
+							Template: test.GetProviderDefinitionTemplate(module, name, layers),
+						},
+						{
+							IsDirectory: true,
+							Name:        name,
+							Parent: &[]Node{
+								{
+									IsFile:   true,
+									Name:     utils.GetFilename("provider", "go"),
+									Template: test.GetProviderImplementationTemplate(module, name, layers),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err = Recursion(wd, structure)
+
+	if err != nil {
+		panic(err)
+	}
 }
