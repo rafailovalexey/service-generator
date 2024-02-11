@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/rafailovalexey/service-generator/internal/structure"
-	"github.com/rafailovalexey/service-generator/internal/utils"
+	"github.com/rafailovalexey/service-generator/internal/util"
 	"path/filepath"
 )
 
@@ -12,7 +12,7 @@ func main() {
 	name := "employees"
 	version := "1.19"
 
-	wd, err := utils.GetWorkDirectory()
+	wd, err := util.GetWorkDirectory()
 
 	if err != nil {
 		panic(err)
