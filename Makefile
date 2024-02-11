@@ -1,11 +1,19 @@
 # Download
 
 download:
-	go mod download
+	@echo "Downloading dependencies..."
+	@go mod download
 
 # Build
 
 build:
-	go build -o build/main main.go
+	@echo "Building..."
+	@go build -o build/main main.go
 
-.PHONY: download, build
+# Tidy
+
+tidy:
+	@echo "Tidy..."
+	@go mod tidy
+
+.PHONY: download, build, tidy

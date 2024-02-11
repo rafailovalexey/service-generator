@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	application := "http"
-	module := "github.com/emptyhopes/template"
+	application := "grpc"
+	module := "github.com/emptyhopes/employees"
 	name := "employees"
 	version := "1.19"
 
@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	wd = filepath.Join(wd, "template")
+	wd = filepath.Join(wd, "employees")
 
 	structure.Generate(wd, application, version, module, name)
 	structure.GenerateProvider(wd, module, name)

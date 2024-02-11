@@ -1,8 +1,19 @@
 # JetBrains
+
 .idea
 
+# Visual Studio Code
+
+.vscode
+
 # Build
+
 build
 
+# Environment
+
+.env
+
 # Mocks
+
 *_mock.go

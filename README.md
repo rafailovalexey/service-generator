@@ -10,7 +10,7 @@
 
 # GRPC
 
-```service-generator generate -path service-employees -application grpc -module github.com/rafailovalexey/employees -name employees```
+```service-generator generate -path employees -application grpc -module github.com/rafailovalexey/employees -name employees```
 
 ```cd service-users```
 
@@ -24,7 +24,7 @@
 
 # HTTP
 
-```service-generator generate -path service-employees -application http -module github.com/rafailovalexey/employees -name employees```
+```service-generator generate -path employees -application http -module github.com/rafailovalexey/employees -name employees```
 
 ```cd service-users```
 

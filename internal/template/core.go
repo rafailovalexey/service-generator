@@ -579,8 +579,14 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, download, build, tests"))
-	data.WriteString(separator)
+	switch application {
+	case "grpc":
+		data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, download, build, tidy, tests"))
+		data.WriteString(separator)
+	default:
+		data.WriteString(fmt.Sprintf(".PHONY: mock-generate, generate, download, build, tidy, tests"))
+		data.WriteString(separator)
+	}
 
 	return data.Bytes()
 }
