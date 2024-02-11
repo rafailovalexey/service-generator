@@ -16,7 +16,7 @@ type Node struct {
 }
 
 func main() {
-	application := "http"
+	application := "grpc"
 	module := "github.com/emptyhopes/test"
 	name := "employees"
 	version := "1.20"
@@ -174,6 +174,50 @@ func Generate(wd string, application string, version string, module string, name
 			},
 			{
 				IsDirectory: true,
+				Name:        "cmd",
+				Parent: &[]Node{
+					{
+						IsDirectory: true,
+						Name:        "grpc_server",
+						Parent: &[]Node{
+							{
+								IsFile:   true,
+								Name:     "grpc_server",
+								Template: test.GetGrpcServerTemplate(module, name),
+							},
+							{
+								IsDirectory: true,
+								Name:        "interceptor",
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("logging", "sh"),
+										Template: test.GetGrpcLoggingInterceptorTemplate(),
+									},
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("tracing", "sh"),
+										Template: test.GetGrpcTracingInterceptorTemplate(),
+									},
+								},
+							},
+							{
+								IsDirectory: true,
+								Name:        "middleware",
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("authentication", "sh"),
+										Template: test.GetGrpcAuthenticationMiddlewareTemplate(),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				IsDirectory: true,
 				Name:        "internal",
 				Parent: &[]Node{
 					{
@@ -198,9 +242,51 @@ func Generate(wd string, application string, version string, module string, name
 		}
 
 		*structure = append(*structure, *temporary...)
-
 	case "http":
 		temporary := &[]Node{
+			{
+				IsDirectory: true,
+				Name:        "cmd",
+				Parent: &[]Node{
+					{
+						IsDirectory: true,
+						Name:        "http_server",
+						Parent: &[]Node{
+							{
+								IsFile:   true,
+								Name:     utils.GetFilename("http_server", "go"),
+								Template: test.GetHttpServerTemplate(module, name),
+							},
+							{
+								IsDirectory: true,
+								Name:        "middleware",
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("logging", "go"),
+										Template: test.GetHttpLoggingInterceptorTemplate(),
+									},
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("authentication", "go"),
+										Template: test.GetHttpAuthenticationMiddlewareTemplate(module),
+									},
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("cors", "go"),
+										Template: test.GetHttpCorsMiddlewareTemplate(),
+									},
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("chain", "go"),
+										Template: test.GetHttpChainMiddlewareTemplate(),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			{
 				IsDirectory: true,
 				Name:        "internal",

@@ -880,3 +880,766 @@ func GetMainTemplate(module string, application string) []byte {
 
 	return data.Bytes()
 }
+
+func GetGrpcLoggingInterceptorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"context\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package interceptor"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func LoggingInterceptor() grpc.UnaryServerInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\ttrace := md[\"trace\"][0]"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"incoming grpc request: %s (%s)\", info.FullMethod, trace)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tresponse, err := handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, trace, err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif err == nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"outgoing grpc response %s (%s)\", info.FullMethod, trace)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\treturn response, err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcTracingInterceptorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"context\"",
+		"\"crypto/rand\"",
+		"\"encoding/hex\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package interceptor"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func TracingInterceptor() grpc.UnaryServerInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Printf(\"metadata not found in the request context\\n\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif len(md[\"trace\"]) != 0 {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\ttrace, err := GenerateTrace()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to generate trace\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tmd = metadata.Join(md, metadata.New(map[string]string{\"trace\": trace}))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tctx = metadata.NewIncomingContext(ctx, md)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\treturn handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func GenerateTrace() (string, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\ttrace := make([]byte, 16)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif _, err := rand.Read(trace); err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn \"\", err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn hex.EncodeToString(trace), nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcAuthenticationMiddlewareTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"context\"",
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/codes\"",
+		"\"google.golang.org/grpc/metadata\"",
+		"\"google.golang.org/grpc/status\"",
+		"\"log\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package middleware"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware() grpc.UnaryServerInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Unauthenticated, \"authentication token not found\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token header in environment\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tlist := md[header]"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif len(list) == 0 {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Unauthenticated, \"authentication token not found\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tkey := list[0]"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token in environment\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif token != key {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"invalid authentication token: %s\", key)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.PermissionDenied, \"invalid authentication token\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\treturn handler(ctx, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetGrpcServerTemplate(module string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"fmt\"",
+		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
+		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name),
+		"\"google.golang.org/grpc\"",
+		"\"google.golang.org/grpc/reflection\"",
+		"\"log\"",
+		"\"net\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package grpc_server"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name, utils.Capitalize(name)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the port\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server starts at address %s\", address))"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tlistener, err := net.Listen(\"tcp\", address)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tserver := grpc.NewServer("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tgrpc.ChainUnaryInterceptor("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.TracingInterceptor(),"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.LoggingInterceptor(),"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tmiddleware.AuthenticationMiddleware(),"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t),"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treflection.Register(server)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name, utils.Capitalize(name)))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server is running at %s\", address))"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\terr = server.Serve(listener)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpLoggingInterceptorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package interceptor"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	imports := []string{
+		"\"log\"",
+		"\"net/http\"",
+		"\"time\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func LoggingInterceptor(next http.Handler) http.Handler {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tstart := time.Now()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tduration := time.Since(start)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Name, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t})"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		fmt.Sprintf("\"%s/utils\"", module),
+		"\"log\"",
+		"\"net/http\"",
+		"\"os\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package middleware"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(next http.Handler) http.Handler {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the name of the authentication token\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the value of the authentication token\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tkey := request.Header.Get(header)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif key != token {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tresponse.WriteHeader(http.StatusUnauthorized)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tresponse.Write(utils.ConvertError(\"unauthorized\"))"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\t\treturn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t})"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpCorsMiddlewareTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package middleware"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func CorsMiddleware(next http.Handler) http.Handler {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Origin\", \"*\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Headers\", \"*\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Methods\", \"*\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Credentials\", \"true\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif request.Method == \"OPTIONS\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tresponse.WriteHeader(http.StatusOK)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\t\treturn"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t})"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpChainMiddlewareTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package middleware"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ChainMiddleware(middlewares ...func(http.Handler) http.Handler) func(http.Handler) http.Handler {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn func(next http.Handler) http.Handler {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tfor index := len(middlewares) - 1; index >= 0; index-- {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tnext = middlewares[index](next)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\treturn next"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpServerTemplate(module string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"fmt\"",
+		"\"log\"",
+		"\"net/http\"",
+		"\"os\"",
+		fmt.Sprintf("\"%s/internal/handler\"", module),
+		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", module),
+		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", module),
+		fmt.Sprintf("\"%s/utils\"", module),
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package http_server"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tinterceptor.LoggingInterceptor,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmiddleware.CorsMiddleware,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tmiddleware.AuthenticationMiddleware,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.%sHandle)))", name, utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(utils.ResponseNotFound)))"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the port\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\tlog.Printf(\"http server starts at address %s\\n\", address)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\terr := http.ListenAndServe(address, router)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error when starting the http server %v\\n\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
