@@ -1,4 +1,4 @@
-package test
+package template
 
 import (
 	"bytes"
@@ -682,7 +682,7 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Running tests...\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go test -v ./..."))
+	data.WriteString(fmt.Sprintf("\t@go template -v ./..."))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -812,29 +812,14 @@ func GetDockerIgnoreTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetMainTemplate(module string, application string) []byte {
+func GetMainTemplate(module string) []byte {
 	data := bytes.Buffer{}
 	separator := utils.GetSeparator()
-
-	typ := "application"
-
-	switch application {
-	case "http":
-		typ = "application"
-	case "grpc":
-		typ = "application"
-	case "cron":
-		typ = "cron"
-	case "subscriber":
-		typ = "subscriber"
-	case "publisher":
-		typ = "publisher"
-	}
 
 	imports := []string{
 		"\"log\"",
 		"\"golang.org/x/net/context\"",
-		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
+		fmt.Sprintf("\"%s/cmd/application\"", module),
 	}
 
 	sort.Strings(imports)
@@ -861,7 +846,7 @@ func GetMainTemplate(module string, application string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t%s, err := %s.New%s(ctx)", utils.FirstLetter(typ), typ, utils.Capitalize(typ)))
+	data.WriteString(fmt.Sprintf("\ta, err := application.NewApplication(ctx)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -873,7 +858,7 @@ func GetMainTemplate(module string, application string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t%s.Run()", utils.FirstLetter(typ)))
+	data.WriteString(fmt.Sprintf("\ta.Run()"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -1637,6 +1622,372 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error when starting the http server %v\\n\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetApplicationTemplate(module string, application string, name string) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	typ := ""
+
+	switch application {
+	case "http":
+		typ = "http_server"
+	case "grpc":
+		typ = "grpc_server"
+	case "cron":
+		typ = "cron_scheduler"
+	case "subscriber":
+		typ = "subscriber"
+	case "publisher":
+		typ = "publisher"
+	}
+
+	imports := []string{
+		"\"context\"",
+		"\"github.com/joho/godotenv\"",
+		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
+		fmt.Sprintf("\"%s/internal/provider\"", module),
+		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", utils.SingularForm(name), module, name),
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package application"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type ApplicationInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitializeDependency(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitializeEnvironment(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tRun()"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type Application struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ ApplicationInterface = (*Application)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewApplication(ctx context.Context) (*Application, error) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\ta := &Application{}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\terr := a.InitializeDependency(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn nil, err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn a, nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeDependency(ctx context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tinits := []func(context.Context) error{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeEnvironment,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tfor _, function := range inits {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\terr := function(ctx)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeEnvironment(_ context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\terr := godotenv.Load(\".env\")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeProvider(_ context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", utils.SingularForm(name), utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) Run() {"))
+	data.WriteString(separator)
+
+	switch application {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", typ))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", utils.SingularForm(name), utils.Capitalize(utils.SingularForm(name))))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", typ))
+		data.WriteString(separator)
+	default:
+		data.WriteString(fmt.Sprintf("\t%s.Run()", typ))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetDockerTemplate(withPort bool) []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("FROM golang:latest"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("COPY . ."))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("RUN make download"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN make build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	if withPort {
+		data.WriteString(fmt.Sprintf("EXPOSE 3000"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetUtilsConverterErrorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"encoding/json\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type ConverterError struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tError string `json:\"error\"`"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ConvertError(message string) []byte {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconvert := &ConverterError{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tError: message,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tresult, err := json.Marshal(convert)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn []byte(err.Error())"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn result"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetUtilsResponseTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := utils.GetSeparator()
+
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package utils"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ResponseBadRequest(response http.ResponseWriter, message string) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusBadRequest)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(ConvertError(message))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ResponseNotFound(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusNotFound)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(ConvertError(\"not found\"))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func ResponseMethodNotAllowed(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusMethodNotAllowed)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(ConvertError(\"method not allowed\"))"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)

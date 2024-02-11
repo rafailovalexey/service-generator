@@ -1,7 +1,7 @@
-package main
+package structure
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/test"
+	"github.com/rafailovalexey/service-generator/internal/template"
 	"github.com/rafailovalexey/service-generator/internal/utils"
 	"path/filepath"
 	"sort"
@@ -13,24 +13,6 @@ type Node struct {
 	Name        string
 	Template    []byte
 	Parent      *[]Node
-}
-
-func main() {
-	application := "grpc"
-	module := "github.com/emptyhopes/test"
-	name := "employees"
-	version := "1.20"
-
-	wd, err := utils.GetWorkDirectory()
-
-	if err != nil {
-		panic(err)
-	}
-
-	wd = filepath.Join(wd, "test")
-
-	Generate(wd, application, version, module, name)
-	Provider(wd, module, name)
 }
 
 func Recursion(path string, nodes *[]Node) error {
@@ -88,7 +70,24 @@ func Generate(wd string, application string, version string, module string, name
 				{
 					IsFile:   true,
 					Name:     utils.GetFilename("mock-generate", "sh"),
-					Template: test.GetMockGenerateShellScriptTemplate(),
+					Template: template.GetMockGenerateShellScriptTemplate(),
+				},
+			},
+		},
+		{
+			IsDirectory: true,
+			Name:        "cmd",
+			Parent: &[]Node{
+				{
+					IsDirectory: true,
+					Name:        "application",
+					Parent: &[]Node{
+						{
+							IsFile:   true,
+							Name:     utils.GetFilename("application", "go"),
+							Template: template.GetApplicationTemplate(module, application, name),
+						},
+					},
 				},
 			},
 		},
@@ -108,42 +107,42 @@ func Generate(wd string, application string, version string, module string, name
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename(".gitignore", ""),
-			Template: test.GetGitIgnoreTemplate(),
+			Template: template.GetGitIgnoreTemplate(),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename(".dockerignore", ""),
-			Template: test.GetDockerIgnoreTemplate(),
+			Template: template.GetDockerIgnoreTemplate(),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename(".env", ""),
-			Template: test.GetEnvironmentTemplate(),
+			Template: template.GetEnvironmentTemplate(),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename(".example.env", ""),
-			Template: test.GetExampleEnvironmentTemplate(),
+			Template: template.GetExampleEnvironmentTemplate(),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename("main", "go"),
-			Template: test.GetMainTemplate(module, application),
+			Template: template.GetMainTemplate(module),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename("go", "mod"),
-			Template: test.GetGoTemplate(module, version),
+			Template: template.GetGoTemplate(module, version),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename("Makefile", ""),
-			Template: test.GetMakefileTemplate(application, name),
+			Template: template.GetMakefileTemplate(application, name),
 		},
 		{
 			IsFile:   true,
 			Name:     utils.GetFilename("README", "md"),
-			Template: test.GetReadmeTemplate(module),
+			Template: template.GetReadmeTemplate(module),
 		},
 	}
 
@@ -155,9 +154,15 @@ func Generate(wd string, application string, version string, module string, name
 				Name:        "api",
 				Parent: &[]Node{
 					{
-						IsFile:   true,
-						Name:     utils.GetFilename(name, "proto"),
-						Template: test.GetProtoTemplate(module, name),
+						IsDirectory: true,
+						Name:        name + "_" + "v1",
+						Parent: &[]Node{
+							{
+								IsFile:   true,
+								Name:     utils.GetFilename(name, "proto"),
+								Template: template.GetProtoTemplate(module, name),
+							},
+						},
 					},
 				},
 			},
@@ -168,7 +173,7 @@ func Generate(wd string, application string, version string, module string, name
 					{
 						IsFile:   true,
 						Name:     utils.GetFilename("grpc-generate", "sh"),
-						Template: test.GetGrpcGenerateShellScriptTemplate(),
+						Template: template.GetGrpcGenerateShellScriptTemplate(),
 					},
 				},
 			},
@@ -182,8 +187,8 @@ func Generate(wd string, application string, version string, module string, name
 						Parent: &[]Node{
 							{
 								IsFile:   true,
-								Name:     "grpc_server",
-								Template: test.GetGrpcServerTemplate(module, name),
+								Name:     utils.GetFilename("grpc_server", "go"),
+								Template: template.GetGrpcServerTemplate(module, name),
 							},
 							{
 								IsDirectory: true,
@@ -191,13 +196,13 @@ func Generate(wd string, application string, version string, module string, name
 								Parent: &[]Node{
 									{
 										IsFile:   true,
-										Name:     utils.GetFilename("logging", "sh"),
-										Template: test.GetGrpcLoggingInterceptorTemplate(),
+										Name:     utils.GetFilename("logging", "go"),
+										Template: template.GetGrpcLoggingInterceptorTemplate(),
 									},
 									{
 										IsFile:   true,
-										Name:     utils.GetFilename("tracing", "sh"),
-										Template: test.GetGrpcTracingInterceptorTemplate(),
+										Name:     utils.GetFilename("tracing", "go"),
+										Template: template.GetGrpcTracingInterceptorTemplate(),
 									},
 								},
 							},
@@ -207,8 +212,8 @@ func Generate(wd string, application string, version string, module string, name
 								Parent: &[]Node{
 									{
 										IsFile:   true,
-										Name:     utils.GetFilename("authentication", "sh"),
-										Template: test.GetGrpcAuthenticationMiddlewareTemplate(),
+										Name:     utils.GetFilename("authentication", "go"),
+										Template: template.GetGrpcAuthenticationMiddlewareTemplate(),
 									},
 								},
 							},
@@ -231,13 +236,18 @@ func Generate(wd string, application string, version string, module string, name
 									{
 										IsFile:   true,
 										Name:     utils.GetFilename("implementation", "go"),
-										Template: test.GetGrpcServerImplementationTemplate(module, name),
+										Template: template.GetGrpcServerImplementationTemplate(module, name),
 									},
 								},
 							},
 						},
 					},
 				},
+			},
+			{
+				IsFile:   true,
+				Name:     "application.dockerfile",
+				Template: template.GetDockerTemplate(true),
 			},
 		}
 
@@ -255,7 +265,7 @@ func Generate(wd string, application string, version string, module string, name
 							{
 								IsFile:   true,
 								Name:     utils.GetFilename("http_server", "go"),
-								Template: test.GetHttpServerTemplate(module, name),
+								Template: template.GetHttpServerTemplate(module, name),
 							},
 							{
 								IsDirectory: true,
@@ -263,23 +273,29 @@ func Generate(wd string, application string, version string, module string, name
 								Parent: &[]Node{
 									{
 										IsFile:   true,
-										Name:     utils.GetFilename("logging", "go"),
-										Template: test.GetHttpLoggingInterceptorTemplate(),
-									},
-									{
-										IsFile:   true,
 										Name:     utils.GetFilename("authentication", "go"),
-										Template: test.GetHttpAuthenticationMiddlewareTemplate(module),
+										Template: template.GetHttpAuthenticationMiddlewareTemplate(module),
 									},
 									{
 										IsFile:   true,
 										Name:     utils.GetFilename("cors", "go"),
-										Template: test.GetHttpCorsMiddlewareTemplate(),
+										Template: template.GetHttpCorsMiddlewareTemplate(),
 									},
 									{
 										IsFile:   true,
 										Name:     utils.GetFilename("chain", "go"),
-										Template: test.GetHttpChainMiddlewareTemplate(),
+										Template: template.GetHttpChainMiddlewareTemplate(),
+									},
+								},
+							},
+							{
+								IsDirectory: true,
+								Name:        "interceptor",
+								Parent: &[]Node{
+									{
+										IsFile:   true,
+										Name:     utils.GetFilename("logging", "go"),
+										Template: template.GetHttpLoggingInterceptorTemplate(),
 									},
 								},
 							},
@@ -298,7 +314,7 @@ func Generate(wd string, application string, version string, module string, name
 							{
 								IsFile:   true,
 								Name:     utils.GetFilename("handler", "go"),
-								Template: test.GetHttpHandlerDefinitionTemplate(name),
+								Template: template.GetHttpHandlerDefinitionTemplate(name),
 							},
 							{
 								IsDirectory: true,
@@ -307,13 +323,34 @@ func Generate(wd string, application string, version string, module string, name
 									{
 										IsFile:   true,
 										Name:     utils.GetFilename("handler", "go"),
-										Template: test.GetHttpHandlerImplementationTemplate(module, name),
+										Template: template.GetHttpHandlerImplementationTemplate(module, name),
 									},
 								},
 							},
 						},
 					},
 				},
+			},
+			{
+				IsDirectory: true,
+				Name:        "utils",
+				Parent: &[]Node{
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename("converter_error", "go"),
+						Template: template.GetUtilsConverterErrorTemplate(),
+					},
+					{
+						IsFile:   true,
+						Name:     utils.GetFilename("response", "go"),
+						Template: template.GetUtilsResponseTemplate(),
+					},
+				},
+			},
+			{
+				IsFile:   true,
+				Name:     "application.dockerfile",
+				Template: template.GetDockerTemplate(true),
 			},
 		}
 
@@ -335,7 +372,7 @@ func GetBaseDefinitionAndImplementationStructure(module string, layer string, na
 			{
 				IsFile:   true,
 				Name:     utils.GetFilename(layer, "go"),
-				Template: test.GetBaseDefinitionTemplate(layer, name),
+				Template: template.GetBaseDefinitionTemplate(layer, name),
 			},
 			{
 				IsDirectory: true,
@@ -344,7 +381,7 @@ func GetBaseDefinitionAndImplementationStructure(module string, layer string, na
 					{
 						IsFile:   true,
 						Name:     utils.GetFilename(layer, "go"),
-						Template: test.GetBaseImplementationTemplate(module, layer, name),
+						Template: template.GetBaseImplementationTemplate(module, layer, name),
 					},
 				},
 			},
@@ -366,7 +403,7 @@ func GetDataTransferObjectStructure(layer string, name string) *Node {
 					{
 						IsFile:   true,
 						Name:     utils.GetFilename(layer, "go"),
-						Template: test.GetDataTransferObjectTemplate(layer, name),
+						Template: template.GetDataTransferObjectTemplate(layer, name),
 					},
 				},
 			},
@@ -376,7 +413,7 @@ func GetDataTransferObjectStructure(layer string, name string) *Node {
 	return structure
 }
 
-func Provider(wd string, module string, name string) {
+func GenerateProvider(wd string, module string, name string) {
 	available := map[string]struct{}{
 		"handler":        {},
 		"implementation": {},
@@ -417,7 +454,7 @@ func Provider(wd string, module string, name string) {
 						{
 							IsFile:   true,
 							Name:     utils.GetFilename("provider", "go"),
-							Template: test.GetProviderDefinitionTemplate(module, name, layers),
+							Template: template.GetProviderDefinitionTemplate(module, name, layers),
 						},
 						{
 							IsDirectory: true,
@@ -426,7 +463,7 @@ func Provider(wd string, module string, name string) {
 								{
 									IsFile:   true,
 									Name:     utils.GetFilename("provider", "go"),
-									Template: test.GetProviderImplementationTemplate(module, name, layers),
+									Template: template.GetProviderImplementationTemplate(module, name, layers),
 								},
 							},
 						},

@@ -1,58 +1,25 @@
 package main
 
 import (
-	"github.com/rafailovalexey/service-generator/internal/strategy"
+	"github.com/rafailovalexey/service-generator/internal/structure"
 	"github.com/rafailovalexey/service-generator/internal/utils"
-	"log"
-	"path"
+	"path/filepath"
 )
 
 func main() {
-	wd, _ := utils.GetWorkDirectory()
-	wd = path.Join(wd, "test")
-
-	module := "github.com/rafailovalexey/service-test"
+	application := "http"
+	module := "github.com/emptyhopes/template"
 	name := "employees"
+	version := "1.19"
 
-	err := strategy.GenerateSubscribeApplication(wd, module, name)
-
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
-
-	err = strategy.GenerateRealisation(wd, module, "repository", name)
+	wd, err := utils.GetWorkDirectory()
 
 	if err != nil {
-		log.Panicf("%s\v", err)
+		panic(err)
 	}
 
-	err = strategy.GenerateRealisation(wd, module, "service", name)
+	wd = filepath.Join(wd, "template")
 
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
-
-	err = strategy.GenerateRealisation(wd, module, "client", name)
-
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
-
-	err = strategy.GenerateRealisation(wd, module, "converter", name)
-
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
-
-	err = strategy.GenerateRealisation(wd, module, "validation", name)
-
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
-
-	err = strategy.GenerateProvider(wd, module, name)
-
-	if err != nil {
-		log.Panicf("%s\v", err)
-	}
+	structure.Generate(wd, application, version, module, name)
+	structure.GenerateProvider(wd, module, name)
 }
