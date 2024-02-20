@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	application := "grpc"
+	application := "cron"
 
 	module := "github.com/emptyhopes/whatsapp-messages-cron"
 
