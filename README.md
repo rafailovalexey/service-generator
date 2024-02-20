@@ -14,13 +14,11 @@
 
 ```cd service-users```
 
-```sudo chmod +x bin/grpc-generate.sh```
-
-```sudo chmod +x bin/mock-generate.sh```
-
 ```make generate```
 
 ```make tidy```
+
+```make download```
 
 # HTTP
 
@@ -28,8 +26,20 @@
 
 ```cd service-users```
 
-```sudo chmod +x bin/mock-generate.sh```
+```make generate```
+
+```make tidy```
+
+```make download```
+
+# CRON
+
+```service-generator generate -path employees -application cron -module github.com/rafailovalexey/employees -name employees```
+
+```cd service-users```
 
 ```make generate```
 
 ```make tidy```
+
+```make download```

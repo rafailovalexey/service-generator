@@ -3,16 +3,17 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetCronSchedulerTemplate(module string, name string) []byte {
+func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		"\"fmt\"",
+		"\"log\"",
 		"\"os\"",
 		"\"os/signal\"",
 		"\"syscall\"",
@@ -38,7 +39,7 @@ func GetCronSchedulerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(%sController controller.%sControllerInterface) {", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("func Run(%sController controller.%sControllerInterface) {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tc := cron.New()"))
 	data.WriteString(separator)
@@ -46,7 +47,7 @@ func GetCronSchedulerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\tc.Start()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tfmt.Println(\"Application cron started\")"))
+	data.WriteString(fmt.Sprintf("\tlog.Println(\"Application cron started\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tdone := make(chan os.Signal)"))
@@ -61,10 +62,7 @@ func GetCronSchedulerTemplate(module string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\tc.Stop()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tfmt.Println(\"Application cron stopped\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(fmt.Sprintf("\tlog.Println(\"Application cron stopped\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(fmt.Sprintf(""))

@@ -3,11 +3,12 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetHttpHandlerDefinitionTemplate(name string) []byte {
+func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -33,9 +34,9 @@ func GetHttpHandlerDefinitionTemplate(name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", util.Capitalize(util.SingularForm(name)), util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sHandle(response http.ResponseWriter, request *http.Request)", util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\tHandle(response http.ResponseWriter, request *http.Request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -43,7 +44,7 @@ func GetHttpHandlerDefinitionTemplate(name string) []byte {
 	return data.Bytes()
 }
 
-func GetHttpHandlerImplementationTemplate(module string, name string) []byte {
+func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -55,7 +56,7 @@ func GetHttpHandlerImplementationTemplate(module string, name string) []byte {
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", util.Lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", name.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -71,23 +72,23 @@ func GetHttpHandlerImplementationTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", util.Capitalize(util.SingularForm(name)), util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", util.Capitalize(util.SingularForm(name)), util.Capitalize("handler"), util.Capitalize(util.SingularForm(name)), util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", name.CamelCaseSingular, util.Capitalize("handler"), name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", util.Capitalize(util.SingularForm(name)), util.Capitalize("handler"), util.Capitalize(util.SingularForm(name)), util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.Capitalize("handler"), name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", util.Capitalize(util.SingularForm(name)), util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) %sHandle(response http.ResponseWriter, request *http.Request) {", util.FirstLetter(name), util.Capitalize(util.SingularForm(name)), util.Capitalize("handler"), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.Capitalize("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tswitch request.Method {"))
 	data.WriteString(separator)
@@ -151,7 +152,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Name, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
@@ -224,11 +225,7 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 
 	data.WriteString(fmt.Sprintf("\t\tif key != token {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tresponse.WriteHeader(http.StatusUnauthorized)"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tresponse.Write(util.ConvertError(\"unauthorized\"))"))
+	data.WriteString(fmt.Sprintf("\t\t\tutil.ResponseUnauthorized(response, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -358,7 +355,7 @@ func GetHttpChainMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetHttpServerTemplate(module string, name string) []byte {
+func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -391,7 +388,7 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
@@ -409,7 +406,11 @@ func GetHttpServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", middlewares(http.HandlerFunc(%sHandler.%sHandle)))", name, util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\troute := middlewares(http.HandlerFunc(%sHandler.Handle))", name.LowerCamelCaseSingular))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", route)", name.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(util.ResponseNotFound)))"))
 	data.WriteString(separator)

@@ -109,6 +109,18 @@ func GetUtilResponseTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("func ResponseUnauthorized(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.WriteHeader(http.StatusUnauthorized)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tresponse.Write(ConvertError(\"unauthorized\"))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("func ResponseNotFound(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tresponse.Header().Set(\"Content-Type\", \"application/json\")"))

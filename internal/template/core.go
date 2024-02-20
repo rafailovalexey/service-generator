@@ -3,11 +3,12 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetApplicationTemplate(module string, application string, name string) []byte {
+func GetApplicationTemplate(module string, application string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -27,7 +28,7 @@ func GetApplicationTemplate(module string, application string, name string) []by
 		"\"github.com/joho/godotenv\"",
 		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
 		fmt.Sprintf("\"%s/internal/provider\"", module),
-		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", util.SingularForm(name), module, name),
+		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name.LowerCamelCaseSingular, module, name.SnakeCasePlural),
 	}
 
 	sort.Strings(imports)
@@ -64,7 +65,7 @@ func GetApplicationTemplate(module string, application string, name string) []by
 
 	data.WriteString(fmt.Sprintf("type Application struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -154,7 +155,7 @@ func GetApplicationTemplate(module string, application string, name string) []by
 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeProvider(_ context.Context) error {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", util.SingularForm(name), util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", name.LowerCamelCaseSingular, name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -169,21 +170,21 @@ func GetApplicationTemplate(module string, application string, name string) []by
 
 	switch application {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", typ))
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", typ))
 		data.WriteString(separator)
 	case "cron":
-		data.WriteString(fmt.Sprintf("\tcontroller := a.%sProvider.Get%sController()", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+		data.WriteString(fmt.Sprintf("\tcontroller := a.%sProvider.Get%sController()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -468,7 +469,7 @@ func GetGoTemplate(module string, version string) []byte {
 	return data.Bytes()
 }
 
-func GetMakefileTemplate(application string, name string) []byte {
+func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -486,7 +487,7 @@ func GetMakefileTemplate(application string, name string) []byte {
 
 		data.WriteString(fmt.Sprintf("PROTO_FILES = \\"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", name, name))
+		data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", name.SnakeCasePlural, name.SnakeCasePlural))
 		data.WriteString(separator)
 		data.WriteString(separator)
 	}
@@ -509,6 +510,8 @@ func GetMakefileTemplate(application string, name string) []byte {
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t@echo \"Generating GRPC...\""))
 		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@chmod +x bin/grpc-generate.sh"))
+		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t@bin/grpc-generate.sh $(PROTO_SOURCE_DIRECTORY) $(PROTO_OUTPUT_DIRECTORY) $(PROTO_FILES)"))
 		data.WriteString(separator)
 		data.WriteString(separator)
@@ -521,6 +524,8 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(fmt.Sprintf("mock-generate:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@echo \"Generating Mocks...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@chmod +x bin/mock-generate.sh"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@bin/mock-generate.sh $(MOCKS_OUTPUT_DIRECTORY) $(MOCKS_FILES)"))
 	data.WriteString(separator)
@@ -540,6 +545,18 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("# Tidy"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("tidy:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Tidy...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@go mod tidy"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("# Download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -549,6 +566,18 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(fmt.Sprintf("\t@echo \"Downloading dependencies...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@go mod download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Run"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("run:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Running...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@go run main.go"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -564,25 +593,13 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("# Tidy"))
+	data.WriteString(fmt.Sprintf("# Test"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("tidy:"))
+	data.WriteString(fmt.Sprintf("test:"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Tidy...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go mod tidy"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("# Tests"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("tests:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Running tests...\""))
+	data.WriteString(fmt.Sprintf("\t@echo \"Running test...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@go template -v ./..."))
 	data.WriteString(separator)
@@ -590,10 +607,10 @@ func GetMakefileTemplate(application string, name string) []byte {
 
 	switch application {
 	case "grpc":
-		data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, download, build, tidy, tests"))
+		data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, tidy, download, run, build, test"))
 		data.WriteString(separator)
 	default:
-		data.WriteString(fmt.Sprintf(".PHONY: mock-generate, generate, download, build, tidy, tests"))
+		data.WriteString(fmt.Sprintf(".PHONY: mock-generate, generate, tidy, download, run, build, test"))
 		data.WriteString(separator)
 	}
 

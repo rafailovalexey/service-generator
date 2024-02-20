@@ -1,6 +1,7 @@
 package structure
 
 import (
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/template"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"path/filepath"
@@ -61,7 +62,7 @@ func Recursion(path string, nodes *[]Node) error {
 	return nil
 }
 
-func Generate(wd string, application string, version string, module string, name string) {
+func Generate(wd string, application string, version string, module string, name *dto.NameDto) {
 	structure := &[]Node{
 		{
 			IsDirectory: true,
@@ -155,11 +156,11 @@ func Generate(wd string, application string, version string, module string, name
 				Parent: &[]Node{
 					{
 						IsDirectory: true,
-						Name:        name + "_" + "v1",
+						Name:        name.SnakeCasePlural + "_" + "v1",
 						Parent: &[]Node{
 							{
 								IsFile:   true,
-								Name:     util.GetFilename(name, "proto"),
+								Name:     util.GetFilename(name.SnakeCasePlural, "proto"),
 								Template: template.GetProtoTemplate(module, name),
 							},
 						},
@@ -231,7 +232,7 @@ func Generate(wd string, application string, version string, module string, name
 						Parent: &[]Node{
 							{
 								IsDirectory: true,
-								Name:        name,
+								Name:        name.SnakeCasePlural,
 								Parent: &[]Node{
 									{
 										IsFile:   true,
@@ -318,7 +319,7 @@ func Generate(wd string, application string, version string, module string, name
 							},
 							{
 								IsDirectory: true,
-								Name:        name,
+								Name:        name.SnakeCasePlural,
 								Parent: &[]Node{
 									{
 										IsFile:   true,
@@ -386,7 +387,7 @@ func Generate(wd string, application string, version string, module string, name
 	}
 }
 
-func GetBaseDefinitionAndImplementationStructure(module string, layer string, name string) *Node {
+func GetBaseDefinitionAndImplementationStructure(module string, layer string, name *dto.NameDto) *Node {
 	structure := &Node{
 		IsDirectory: true,
 		Name:        layer,
@@ -398,7 +399,7 @@ func GetBaseDefinitionAndImplementationStructure(module string, layer string, na
 			},
 			{
 				IsDirectory: true,
-				Name:        name,
+				Name:        name.SnakeCasePlural,
 				Parent: &[]Node{
 					{
 						IsFile:   true,
@@ -413,14 +414,14 @@ func GetBaseDefinitionAndImplementationStructure(module string, layer string, na
 	return structure
 }
 
-func GetDataTransferObjectStructure(layer string, name string) *Node {
+func GetDataTransferObjectStructure(layer string, name *dto.NameDto) *Node {
 	structure := &Node{
 		IsDirectory: true,
 		Name:        layer,
 		Parent: &[]Node{
 			{
 				IsDirectory: true,
-				Name:        name,
+				Name:        name.SnakeCasePlural,
 				Parent: &[]Node{
 					{
 						IsFile:   true,
@@ -435,7 +436,7 @@ func GetDataTransferObjectStructure(layer string, name string) *Node {
 	return structure
 }
 
-func GenerateProvider(wd string, module string, name string) {
+func GenerateProvider(wd string, module string, name *dto.NameDto) {
 	available := map[string]struct{}{
 		"handler":        {},
 		"implementation": {},
@@ -480,7 +481,7 @@ func GenerateProvider(wd string, module string, name string) {
 						},
 						{
 							IsDirectory: true,
-							Name:        name,
+							Name:        name.SnakeCasePlural,
 							Parent: &[]Node{
 								{
 									IsFile:   true,

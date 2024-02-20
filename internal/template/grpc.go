@@ -3,21 +3,22 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetGrpcServerImplementationTemplate(module string, name string) []byte {
+func GetGrpcServerImplementationTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
 	}
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", util.Lowercase(name)))
+	data.WriteString(fmt.Sprintf("package %s", name.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -33,23 +34,23 @@ func GetGrpcServerImplementationTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {", util.Capitalize(util.SingularForm(name)), util.Capitalize("implementation")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", name.CamelCaseSingular, util.Capitalize("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", name, util.Capitalize(name)))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", util.Capitalize(util.SingularForm(name)), util.Capitalize("implementation"), util.Capitalize(util.SingularForm(name)), util.Capitalize("implementation")))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", util.Capitalize(util.SingularForm(name)), util.Capitalize("implementation")))
+	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", util.FirstLetter(name), util.Capitalize(util.SingularForm(name)), util.Capitalize("implementation"), util.Capitalize(util.SingularForm(name))))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.Capitalize("implementation"), name.CamelCaseSingular, util.Capitalize("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.Capitalize("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.Capitalize("implementation"), name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn"))
 	data.WriteString(separator)
@@ -363,7 +364,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetGrpcServerTemplate(module string, name string) []byte {
+func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -371,7 +372,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 		"\"fmt\"",
 		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
 		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
-		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
 		"\"google.golang.org/grpc\"",
 		"\"google.golang.org/grpc/reflection\"",
 		"\"log\"",
@@ -397,7 +398,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name, util.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
 	data.WriteString(separator)
@@ -453,7 +454,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name, util.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -477,7 +478,7 @@ func GetGrpcServerTemplate(module string, name string) []byte {
 	return data.Bytes()
 }
 
-func GetProtoTemplate(module string, name string) []byte {
+func GetProtoTemplate(module string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -485,15 +486,15 @@ func GetProtoTemplate(module string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("package %s_v1;", name))
+	data.WriteString(fmt.Sprintf("package %s_v1;", name.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, "api", name))
+	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, "api", name.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("service %sV1 {}", util.Capitalize(name)))
+	data.WriteString(fmt.Sprintf("service %sV1 {}", name.CamelCasePlural))
 	data.WriteString(separator)
 
 	return data.Bytes()
