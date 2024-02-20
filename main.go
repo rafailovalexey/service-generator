@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-	application := "grpc"
-	module := "github.com/emptyhopes/employees"
-	name := "employees"
+	application := "cron"
+	module := "github.com/emptyhopes/whatsapp-messages-cron"
+	name := "messages"
 	version := "1.19"
 
 	wd, err := util.GetWorkDirectory()
@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	wd = filepath.Join(wd, "employees")
+	wd = filepath.Join(wd, "whatsapp-messages-cron")
 
 	structure.Generate(wd, application, version, module, name)
 	structure.GenerateProvider(wd, module, name)

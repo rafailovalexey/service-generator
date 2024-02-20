@@ -355,6 +355,28 @@ func Generate(wd string, application string, version string, module string, name
 		}
 
 		*structure = append(*structure, *temporary...)
+	case "cron":
+		temporary := &[]Node{
+			{
+				IsDirectory: true,
+				Name:        "cmd",
+				Parent: &[]Node{
+					{
+						IsDirectory: true,
+						Name:        "cron_scheduler",
+						Parent: &[]Node{
+							{
+								IsFile:   true,
+								Name:     util.GetFilename("cron_scheduler", "go"),
+								Template: template.GetCronSchedulerTemplate(module, name),
+							},
+						},
+					},
+				},
+			},
+		}
+
+		*structure = append(*structure, *temporary...)
 	}
 
 	err := Recursion(wd, structure)

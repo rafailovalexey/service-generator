@@ -20,10 +20,6 @@ func GetApplicationTemplate(module string, application string, name string) []by
 		typ = "grpc_server"
 	case "cron":
 		typ = "cron_scheduler"
-	case "subscriber":
-		typ = "subscriber"
-	case "publisher":
-		typ = "publisher"
 	}
 
 	imports := []string{
@@ -186,8 +182,15 @@ func GetApplicationTemplate(module string, application string, name string) []by
 
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", typ))
 		data.WriteString(separator)
+	case "cron":
+		data.WriteString(fmt.Sprintf("\tcontroller := a.%sProvider.Get%sController()", util.SingularForm(name), util.Capitalize(util.SingularForm(name))))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\t%s.Run(controller)", typ))
+		data.WriteString(separator)
 	default:
-		data.WriteString(fmt.Sprintf("\t%s.Run()", typ))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run()", typ))
 		data.WriteString(separator)
 	}
 
@@ -527,7 +530,13 @@ func GetMakefileTemplate(application string, name string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("generate: grpc-generate mock-generate"))
+	switch application {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("generate: grpc-generate mock-generate"))
+	default:
+		data.WriteString(fmt.Sprintf("generate: mock-generate"))
+	}
+
 	data.WriteString(separator)
 	data.WriteString(separator)
 
