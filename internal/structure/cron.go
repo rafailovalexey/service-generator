@@ -25,6 +25,11 @@ func GetCronStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 				},
 			},
 		},
+		{
+			IsFile:   true,
+			Name:     "application.dockerfile",
+			Template: template.GetDockerTemplate(false),
+		},
 	}
 
 	return structure
