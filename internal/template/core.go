@@ -184,11 +184,11 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", typ))
 		data.WriteString(separator)
 	case "cron":
-		data.WriteString(fmt.Sprintf("\tcontroller := a.%sProvider.Get%sController()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\t%s.Run(controller)", typ))
+		data.WriteString(fmt.Sprintf("\t%s.Run(service)", typ))
 		data.WriteString(separator)
 	default:
 		data.WriteString(fmt.Sprintf("\terr := %s.Run()", typ))

@@ -8,18 +8,18 @@ import (
 )
 
 func main() {
-	application := "http"
+	application := "cron"
 
-	module := "github.com/emptyhopes/whatsapp-messages"
+	module := "git.amocrm.ru/whatsapp-lite/whatsapp-lite-messages-cron"
 
 	name := &dto.NameDto{
 		LowerCaseFirstLetter:   "w",
-		CamelCaseSingular:      "WhatsappMessage",
-		CamelCasePlural:        "WhatsappMessages",
-		LowerCamelCaseSingular: "whatsappMessage",
-		LowerCamelCasePlural:   "whatsappMessages",
-		SnakeCaseSingular:      "whatsapp_message",
-		SnakeCasePlural:        "whatsapp_messages",
+		CamelCaseSingular:      "WhatsappLiteMessage",
+		CamelCasePlural:        "WhatsappLiteMessages",
+		LowerCamelCaseSingular: "whatsappLiteMessage",
+		LowerCamelCasePlural:   "whatsappLiteMessages",
+		SnakeCaseSingular:      "whatsapp_lite_message",
+		SnakeCasePlural:        "whatsapp_lite_messages",
 	}
 
 	version := "1.19"
@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	wd = filepath.Join(wd, "whatsapp-messages")
+	wd = filepath.Join(wd, "whatsapp-lite-messages-cron")
 
 	structure.Generate(wd, application, version, module, name)
 	structure.GenerateProvider(wd, module, name)

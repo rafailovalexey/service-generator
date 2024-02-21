@@ -61,6 +61,8 @@ func GetHttpStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 			IsDirectory: true,
 			Name:        "internal",
 			Parent: &[]dto.NodeDto{
+				*GetBaseDefinitionAndImplementationStructure(module, "controller", name),
+				*GetBaseDefinitionAndImplementationStructure(module, "validation", name),
 				{
 					IsDirectory: true,
 					Name:        "handler",

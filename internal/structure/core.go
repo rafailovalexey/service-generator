@@ -40,8 +40,6 @@ func GetCoreStructure(application string, version string, module string, name *d
 			IsDirectory: true,
 			Name:        "internal",
 			Parent: &[]dto.NodeDto{
-				*GetBaseDefinitionAndImplementationStructure(module, "controller", name),
-				*GetBaseDefinitionAndImplementationStructure(module, "validation", name),
 				*GetBaseDefinitionAndImplementationStructure(module, "converter", name),
 				*GetBaseDefinitionAndImplementationStructure(module, "service", name),
 				*GetBaseDefinitionAndImplementationStructure(module, "repository", name),

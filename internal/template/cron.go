@@ -18,7 +18,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 		"\"os/signal\"",
 		"\"syscall\"",
 		"\"github.com/robfig/cron\"",
-		fmt.Sprintf("\"%s/internal/controller\"", module),
+		fmt.Sprintf("\"%s/internal/service\"", module),
 	}
 
 	sort.Strings(imports)
@@ -39,7 +39,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(%sController controller.%sControllerInterface) {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("func Run(%sService service.%sServiceInterface) {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tc := cron.New()"))
 	data.WriteString(separator)
