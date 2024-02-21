@@ -18,7 +18,7 @@ func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", util.Lowercase("handler")))
+	data.WriteString(fmt.Sprintf("package %s", "handler"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -34,7 +34,7 @@ func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tHandle(response http.ResponseWriter, request *http.Request)"))
 	data.WriteString(separator)
@@ -51,7 +51,7 @@ func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []by
 	imports := []string{
 		fmt.Sprintf("\"%s/util\"", module),
 		fmt.Sprintf("\"net/http\""),
-		fmt.Sprintf("definition \"%s/%s/%s\"", module, "internal", util.Lowercase("handler")),
+		fmt.Sprintf("definition \"%s/%s/%s\"", module, "internal", "handler"),
 	}
 
 	sort.Strings(imports)
@@ -72,23 +72,23 @@ func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []by
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", name.CamelCaseSingular, util.Capitalize("handler"), name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.Capitalize("handler"), name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.Capitalize("handler")))
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tswitch request.Method {"))
 	data.WriteString(separator)

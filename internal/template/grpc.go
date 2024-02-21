@@ -34,7 +34,7 @@ func GetGrpcServerImplementationTemplate(module string, name *dto.NameDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {", name.CamelCaseSingular, util.Capitalize("implementation")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
@@ -42,15 +42,15 @@ func GetGrpcServerImplementationTemplate(module string, name *dto.NameDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.Capitalize("implementation"), name.CamelCaseSingular, util.Capitalize("implementation")))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.Capitalize("implementation")))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.Capitalize("implementation"), name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn"))
 	data.WriteString(separator)

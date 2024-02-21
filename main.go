@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	application := "cron"
+	application := "http"
 
-	module := "github.com/emptyhopes/whatsapp-messages-cron"
+	module := "github.com/emptyhopes/whatsapp-messages"
 
 	name := &dto.NameDto{
 		LowerCaseFirstLetter:   "w",
@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	wd = filepath.Join(wd, "whatsapp-messages-cron")
+	wd = filepath.Join(wd, "whatsapp-messages")
 
 	structure.Generate(wd, application, version, module, name)
 	structure.GenerateProvider(wd, module, name)
