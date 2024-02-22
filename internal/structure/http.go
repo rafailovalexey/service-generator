@@ -62,6 +62,11 @@ func GetHttpStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 			Name:        "database",
 			Parent: &[]dto.NodeDto{
 				{
+					IsDirectory: true,
+					Name:        "migrations",
+					Parent:      &[]dto.NodeDto{},
+				},
+				{
 					IsFile:   true,
 					Name:     util.GetFilename("database", "go"),
 					Template: template.GetDatabaseTemplate(),

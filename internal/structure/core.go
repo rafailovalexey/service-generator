@@ -41,7 +41,7 @@ func GetCoreStructure(application string, version string, database string, modul
 						{
 							IsFile:   true,
 							Name:     util.GetFilename("migration", "go"),
-							Template: template.GetMigrationTemplate(module),
+							Template: template.GetMigrationTemplate(database, module),
 						},
 					},
 				},

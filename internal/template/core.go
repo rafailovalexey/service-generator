@@ -26,7 +26,9 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	imports := []string{
 		"\"context\"",
 		"\"github.com/joho/godotenv\"",
+		fmt.Sprintf("\"%s/database\"", module),
 		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
+		fmt.Sprintf("\"%s/cmd/migration\"", module),
 		fmt.Sprintf("\"%s/internal/provider\"", module),
 		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name.LowerCamelCaseSingular, module, name.SnakeCasePlural),
 	}
@@ -56,6 +58,8 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(fmt.Sprintf("\tInitializeEnvironment(context.Context) error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitializeMigration(context.Context) error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tRun()"))
 	data.WriteString(separator)
@@ -106,6 +110,8 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeEnvironment,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeMigration,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -159,6 +165,27 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdb := database.NewMySQLDatabase()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\terr := migration.Run(db)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -478,7 +505,6 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 		data.WriteString(fmt.Sprintf("MYSQL_PORT=3306"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("MYSQL_DATABASE=database"))
-		data.WriteString(separator)
 		data.WriteString(separator)
 	}
 
