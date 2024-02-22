@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetCoreStructure(application string, version string, module string, name *dto.NameDto) *[]dto.NodeDto {
+func GetCoreStructure(application string, version string, database string, module string, name *dto.NameDto) *[]dto.NodeDto {
 	structure := &[]dto.NodeDto{
 		{
 			IsDirectory: true,
@@ -31,6 +31,17 @@ func GetCoreStructure(application string, version string, module string, name *d
 							IsFile:   true,
 							Name:     util.GetFilename("application", "go"),
 							Template: template.GetApplicationTemplate(module, application, name),
+						},
+					},
+				},
+				{
+					IsDirectory: true,
+					Name:        "migration",
+					Parent: &[]dto.NodeDto{
+						{
+							IsFile:   true,
+							Name:     util.GetFilename("migration", "go"),
+							Template: template.GetMigrationTemplate(module),
 						},
 					},
 				},
@@ -60,12 +71,12 @@ func GetCoreStructure(application string, version string, module string, name *d
 		{
 			IsFile:   true,
 			Name:     util.GetFilename(".env", ""),
-			Template: template.GetEnvironmentTemplate(),
+			Template: template.GetEnvironmentTemplate(application, database),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename(".example.env", ""),
-			Template: template.GetExampleEnvironmentTemplate(),
+			Template: template.GetEnvironmentTemplate(application, database),
 		},
 		{
 			IsFile:   true,

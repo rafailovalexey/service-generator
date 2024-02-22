@@ -54,8 +54,8 @@ func Recursion(path string, nodes *[]dto.NodeDto) error {
 	return nil
 }
 
-func Generate(wd string, application string, version string, module string, name *dto.NameDto) {
-	structure := GetCoreStructure(application, version, module, name)
+func Generate(wd string, application string, version string, database string, module string, name *dto.NameDto) {
+	structure := GetCoreStructure(application, version, database, module, name)
 
 	switch application {
 	case "grpc":
@@ -64,6 +64,11 @@ func Generate(wd string, application string, version string, module string, name
 		*structure = append(*structure, *GetHttpStructure(module, name)...)
 	case "cron":
 		*structure = append(*structure, *GetCronStructure(module, name)...)
+	}
+
+	switch database {
+	case "mysql":
+		*structure = append(*structure, *GetMySQLStructure()...)
 	}
 
 	err := Recursion(wd, structure)

@@ -443,14 +443,44 @@ func GetDockerTemplate(withPort bool) []byte {
 	return data.Bytes()
 }
 
-func GetEnvironmentTemplate() []byte {
+func GetEnvironmentTemplate(application string, database string) []byte {
 	data := bytes.Buffer{}
+	separator := util.GetSeparator()
 
-	return data.Bytes()
-}
+	data.WriteString(fmt.Sprintf("# Migrations"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("MIGRATION_DIRECTORY=database/migrations"))
+	data.WriteString(separator)
+	data.WriteString(separator)
 
-func GetExampleEnvironmentTemplate() []byte {
-	data := bytes.Buffer{}
+	switch application {
+	case "http":
+		data.WriteString(fmt.Sprintf("# HTTP"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("PORT=3000"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
+
+	switch database {
+	case "mysql":
+		data.WriteString(fmt.Sprintf("# MySQL"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_USERNAME=mysql"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_PASSWORD=mysql"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_HOSTNAME=localhost"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_PORT=3306"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_DATABASE=database"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
 
 	return data.Bytes()
 }
@@ -472,6 +502,12 @@ func GetGoTemplate(module string, version string) []byte {
 func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("include .env"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("export"))
+	data.WriteString(separator)
+	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
@@ -590,6 +626,20 @@ func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
 	data.WriteString(fmt.Sprintf("\t@echo \"Building...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@go build -o build/main main.go"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Migration create"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("migration-create:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@echo \"Migration create...\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@mkdir -p ${MIGRATION_DIRECTORY}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@goose -dir ${MIGRATION_DIRECTORY} create $(MIGRATION_NAME) sql"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
