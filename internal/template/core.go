@@ -330,7 +330,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\tp := &postgres.PostgresDatabaseConfig{"))
+		data.WriteString(fmt.Sprintf("\tp := &postgres.PostgresDatabaseConfig {"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\tHostname:\tpostgresHostname,"))
 		data.WriteString(separator)
@@ -592,7 +592,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\tPort:\tgrpcServerPort,"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\tAuthentication:\t&middleware.GrpcAuthenticationConfig{"))
+		data.WriteString(fmt.Sprintf("\t\tAuthentication:\t&middleware.GrpcAuthenticationConfig {"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\t\tHeader:\tgrpcServerAuthenticationTokenHeader,"))
 		data.WriteString(separator)
@@ -610,7 +610,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 		data.WriteString(fmt.Sprintf("\tif httpServerHostname == \"\" {"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the grpc server hostname\")"))
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the http server hostname\")"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
@@ -622,7 +622,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 		data.WriteString(fmt.Sprintf("\tif httpServerPort == \"\" {"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the grpc server port\")"))
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the http server port\")"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
@@ -634,7 +634,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 		data.WriteString(fmt.Sprintf("\tif httpServerAuthenticationTokenHeader == \"\" {"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the grpc server authentication token header\")"))
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the http server authentication token header\")"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
@@ -646,19 +646,18 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 		data.WriteString(fmt.Sprintf("\tif httpServerAuthenticationToken == \"\" {"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the grpc server authentication token\")"))
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the http server authentication token\")"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
 		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\ts := &grpc_server.GrpcServerConfig{"))
+		data.WriteString(fmt.Sprintf("\ts := &http_server.HttpServerConfig {"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\tHostname:\thttpServerHostname,"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\tPort:\thttpServerPort,"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\tAuthentication:\t&middleware.GrpcAuthenticationConfig{"))
+		data.WriteString(fmt.Sprintf("\t\tAuthentication:\t&middleware.HttpAuthenticationConfig {"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t\t\tHeader:\thttpServerAuthenticationTokenHeader,"))
 		data.WriteString(separator)
@@ -699,6 +698,14 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tDebug:\tdebug,"))
 	data.WriteString(separator)
+	switch application {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\t\tGrpcServer:\ts,"))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\t\tHttpServer:\ts,"))
+		data.WriteString(separator)
+	}
 	switch database {
 	case "postgres":
 		data.WriteString(fmt.Sprintf("\t\tDatabase:\tp,"))
@@ -861,7 +868,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\terr := %s.Run(handler)", t))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run(a.config.HttpServer, a.logger, handler)", t))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -1193,18 +1200,26 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 		data.WriteString(fmt.Sprintf("# GRPC"))
 		data.WriteString(separator)
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("HOSTNAME=localhost"))
+		data.WriteString(fmt.Sprintf("GRPC_SERVER_HOSTNAME=localhost"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("PORT=3000"))
+		data.WriteString(fmt.Sprintf("GRPC_SERVER_PORT=3000"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("GRPC_SERVER_AUTHENTICATION_TOKEN_HEADER=authentication-header"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("GRPC_SERVER_AUTHENTICATION_TOKEN=authentication-token"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 	case "http":
 		data.WriteString(fmt.Sprintf("# HTTP"))
 		data.WriteString(separator)
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("HOSTNAME=localhost"))
+		data.WriteString(fmt.Sprintf("HTTP_SERVER_HOSTNAME=localhost"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("PORT=3000"))
+		data.WriteString(fmt.Sprintf("HTTP_SERVER_PORT=3000"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("HTTP_SERVER_AUTHENTICATION_TOKEN_HEADER=authentication-header"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("HTTP_SERVER_AUTHENTICATION_TOKEN=authentication-token"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 	}
@@ -1390,6 +1405,20 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 	data.WriteString(fmt.Sprintf("\t@echo \"Downloading dependencies...\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t@go mod download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Setup"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("setup:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@make generate"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@make tidy"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t@make download"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
