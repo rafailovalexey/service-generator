@@ -50,8 +50,9 @@ func GetMigrationTemplate(database string) []byte {
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
+		data.WriteString(separator)
 	case "postgres":
-		data.WriteString(fmt.Sprintf("\terr = goose.SetDialect(\"postgres\")"))
+		data.WriteString(fmt.Sprintf("\terr := goose.SetDialect(\"postgres\")"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\tif err != nil {"))
@@ -59,6 +60,7 @@ func GetMigrationTemplate(database string) []byte {
 		data.WriteString(fmt.Sprintf("\t\treturn err"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
 		data.WriteString(separator)
 	}
 
@@ -74,10 +76,10 @@ func GetMigrationTemplate(database string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\terr = goose.Up(database, filepath.Join(wd, \"database\", \"migration\"))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\t\treturn err"))
@@ -85,6 +87,7 @@ func GetMigrationTemplate(database string) []byte {
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
+
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))

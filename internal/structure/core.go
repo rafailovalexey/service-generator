@@ -49,6 +49,17 @@ func GetCoreStructure(application string, version string, database string, modul
 		},
 		{
 			IsDirectory: true,
+			Name:        "config",
+			Parent: &[]dto.NodeDto{
+				{
+					IsFile:   true,
+					Name:     util.GetFilename("config", "go"),
+					Template: template.GetConfigTemplate(module, application, database),
+				},
+			},
+		},
+		{
+			IsDirectory: true,
 			Name:        "internal",
 			Parent: &[]dto.NodeDto{
 				*GetBaseDefinitionAndImplementationStructure(module, "converter", name),

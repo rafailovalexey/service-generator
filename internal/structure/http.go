@@ -27,6 +27,11 @@ func GetHttpStructure(module string, organization string, version string, name *
 							Parent: &[]dto.NodeDto{
 								{
 									IsFile:   true,
+									Name:     util.GetFilename("middleware", "go"),
+									Template: template.GetHttpMiddlewareTemplate(),
+								},
+								{
+									IsFile:   true,
 									Name:     util.GetFilename("authentication", "go"),
 									Template: template.GetHttpAuthenticationMiddlewareTemplate(module),
 								},
@@ -46,6 +51,11 @@ func GetHttpStructure(module string, organization string, version string, name *
 							IsDirectory: true,
 							Name:        "interceptor",
 							Parent: &[]dto.NodeDto{
+								{
+									IsFile:   true,
+									Name:     util.GetFilename("interceptor", "go"),
+									Template: template.GetHttpInterceptorTemplate(),
+								},
 								{
 									IsFile:   true,
 									Name:     util.GetFilename("logging", "go"),

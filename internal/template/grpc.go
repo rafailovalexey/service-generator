@@ -70,7 +70,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 		"\"google.golang.org/grpc/codes\"",
 		"\"google.golang.org/grpc/metadata\"",
 		"\"google.golang.org/grpc/status\"",
-		"\"log\"",
+		"\"github.com/sirupsen/logrus\"",
 	}
 
 	sort.Strings(imports)
@@ -91,7 +91,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func LoggingInterceptor() grpc.UnaryServerInterceptor {"))
+	data.WriteString(fmt.Sprintf("func LoggingInterceptor(logger *logrus.Logger) grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
@@ -111,7 +111,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"incoming grpc request: %s (%s)\", info.FullMethod, trace)"))
+	data.WriteString(fmt.Sprint("\t\tlogger.Debugf(\"incoming grpc request: %s (%s)\", info.FullMethod, trace)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -121,7 +121,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, trace, err)"))
+	data.WriteString(fmt.Sprint("\t\t\tlogger.Debugf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, trace, err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
@@ -129,7 +129,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("\t\tif err == nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"outgoing grpc response %s (%s)\", info.FullMethod, trace)"))
+	data.WriteString(fmt.Sprint("\t\t\tlogger.Debugf(\"outgoing grpc response %s (%s)\", info.FullMethod, trace)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
@@ -157,7 +157,6 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 		"\"google.golang.org/grpc/codes\"",
 		"\"google.golang.org/grpc/metadata\"",
 		"\"google.golang.org/grpc/status\"",
-		"\"log\"",
 	}
 
 	sort.Strings(imports)
@@ -188,10 +187,6 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("\t\tif !isExist {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tlog.Printf(\"metadata not found in the request context\\n\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.Internal, \"failed to read metadata\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
@@ -264,8 +259,6 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 		"\"google.golang.org/grpc/codes\"",
 		"\"google.golang.org/grpc/metadata\"",
 		"\"google.golang.org/grpc/status\"",
-		"\"log\"",
-		"\"os\"",
 	}
 
 	sort.Strings(imports)
@@ -286,7 +279,17 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware() grpc.UnaryServerInterceptor {"))
+	data.WriteString(fmt.Sprintf("type GrpcAuthenticationConfig struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tHeader\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tToken\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(config *GrpcAuthenticationConfig) grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
@@ -302,19 +305,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token header in environment\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tlist := md[header]"))
+	data.WriteString(fmt.Sprintf("\t\tlist := md[config.Header]"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -330,24 +321,8 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
+	data.WriteString(fmt.Sprintf("\t\tif config.Token != key {"))
 	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"not found authentication token in environment\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tif token != key {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\t\tlog.Printf(\"invalid authentication token: %s\", key)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
 	data.WriteString(fmt.Sprintf("\t\t\treturn nil, status.Errorf(codes.PermissionDenied, \"invalid authentication token\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
@@ -370,13 +345,13 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 
 	imports := []string{
 		"\"fmt\"",
+		"\"net\"",
 		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
 		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
 		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
 		"\"google.golang.org/grpc\"",
 		"\"google.golang.org/grpc/reflection\"",
-		"\"log\"",
-		"\"net\"",
+		"\"github.com/sirupsen/logrus\"",
 	}
 
 	sort.Strings(imports)
@@ -403,17 +378,19 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tPort\tstring"))
 	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tAuthentication\t*middleware.GrpcAuthenticationConfig"))
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(config *GrpcServerConfig, api %s_v1.%sV1Server) error {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("func Run(config *GrpcServerConfig, logger *logrus.Logger, api %s_v1.%sV1Server) error {", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", config.Hostname, config.Port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server starts at address %s\", address))"))
+	data.WriteString(fmt.Sprint("\tlogger.Infof(fmt.Sprintf(\"grpc server starts at address %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -435,9 +412,9 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.TracingInterceptor(),"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.LoggingInterceptor(),"))
+	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.LoggingInterceptor(logger),"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tmiddleware.AuthenticationMiddleware(),"))
+	data.WriteString(fmt.Sprintf("\t\t\tmiddleware.AuthenticationMiddleware(config.Authentication),"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t),"))
 	data.WriteString(separator)
@@ -453,7 +430,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\tlog.Printf(\"%s\\n\", fmt.Sprintf(\"grpc server is running at %s\", address))"))
+	data.WriteString(fmt.Sprint("\tlogger.Infof(fmt.Sprintf(\"grpc server is running at %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 

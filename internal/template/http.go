@@ -108,7 +108,7 @@ func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []by
 	return data.Bytes()
 }
 
-func GetHttpLoggingInterceptorTemplate() []byte {
+func GetHttpInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -117,9 +117,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 
 	imports := []string{
-		"\"log\"",
 		"\"net/http\"",
-		"\"time\"",
 	}
 
 	sort.Strings(imports)
@@ -136,7 +134,67 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func LoggingInterceptor(next http.Handler) http.Handler {"))
+	data.WriteString(fmt.Sprintf("type InterceptorInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tApply(http.Handler) http.Handler"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpLoggingInterceptorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := util.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package interceptor"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	imports := []string{
+		"\"net/http\"",
+		"\"time\"",
+		"\"github.com/sirupsen/logrus\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type LoggingInterceptor struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("var _ InterceptorInterface = (*LoggingInterceptor)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func NewLoggingInterceptor(logger *logrus.Logger) *LoggingInterceptor {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &LoggingInterceptor{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (l *LoggingInterceptor) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
@@ -152,9 +210,45 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tlog.Printf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(fmt.Sprint("\t\tl.logger.Debugf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpMiddlewareTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := util.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("package middleware"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type MiddlewareInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tApply(http.Handler) http.Handler"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -168,9 +262,7 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 
 	imports := []string{
 		fmt.Sprintf("\"%s/util\"", module),
-		"\"log\"",
 		"\"net/http\"",
-		"\"os\"",
 	}
 
 	sort.Strings(imports)
@@ -191,39 +283,49 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(next http.Handler) http.Handler {"))
+	data.WriteString(fmt.Sprintf("type HttpAuthenticationConfig struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tHeader\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tToken\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type AuthenticationMiddleware struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *HttpAuthenticationConfig"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ MiddlewareInterface = (*AuthenticationMiddleware)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewAuthenticationMiddleware(config *HttpAuthenticationConfig) *AuthenticationMiddleware {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &AuthenticationMiddleware{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *AuthenticationMiddleware) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\theader := os.Getenv(\"AUTHENTICATION_TOKEN_HEADER\")"))
+	data.WriteString(fmt.Sprintf("\t\tkey := request.Header.Get(a.config.Header)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\tif header == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the name of the authentication token\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\ttoken := os.Getenv(\"AUTHENTICATION_TOKEN\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tif token == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tlog.Panicf(\"specify the value of the authentication token\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tkey := request.Header.Get(header)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\t\tif key != token {"))
+	data.WriteString(fmt.Sprintf("\t\tif key != a.config.Token {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tutil.ResponseUnauthorized(response, request)"))
 	data.WriteString(separator)
@@ -271,7 +373,21 @@ func GetHttpCorsMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func CorsMiddleware(next http.Handler) http.Handler {"))
+	data.WriteString(fmt.Sprintf("type CorsMiddleware struct{}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("var _ MiddlewareInterface = (*CorsMiddleware)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("func NewCorsMiddleware() *CorsMiddleware {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &CorsMiddleware{}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (c *CorsMiddleware) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
@@ -361,13 +477,12 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 
 	imports := []string{
 		"\"fmt\"",
-		"\"log\"",
 		"\"net/http\"",
-		"\"os\"",
 		fmt.Sprintf("\"%s/internal/handler\"", module),
 		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", module),
 		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", module),
 		fmt.Sprintf("\"%s/util\"", module),
+		"\"github.com/sirupsen/logrus\"",
 	}
 
 	sort.Strings(imports)
@@ -388,7 +503,19 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(%sHandler handler.%sHandlerInterface) {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("type HttpServerConfig struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tHostname\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tPort\tstring"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tAuthentication\t*middleware.HttpAuthenticationConfig"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func Run(config *HttpServerConfig, logger *logrus.Logger, %sHandler handler.%sHandlerInterface) error {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
@@ -396,11 +523,11 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tinterceptor.LoggingInterceptor,"))
+	data.WriteString(fmt.Sprintf("\t\tinterceptor.NewLoggingInterceptor(logger).Apply,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tmiddleware.CorsMiddleware,"))
+	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewCorsMiddleware().Apply,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tmiddleware.AuthenticationMiddleware,"))
+	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewAuthenticationMiddleware(config.Authentication).Apply,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
@@ -416,24 +543,11 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the port\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", config.Hostname, config.Port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprint("\tlog.Printf(\"http server starts at address %s\\n\", address)"))
+	data.WriteString(fmt.Sprint("\tlogger.Infof(\"http server starts at address %s\\n\", address)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -443,9 +557,12 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"error when starting the http server %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"error when starting the http server %v\\n\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)

@@ -11,8 +11,8 @@ import (
 
 func main() {
 	version := "1.20"
-	application := "grpc"
-	database := "mysql"
+	application := "http"
+	database := "postgres"
 
 	organization := "github.com"
 	project := "rafailovalexey"
