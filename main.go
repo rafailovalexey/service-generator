@@ -1,39 +1,52 @@
 package main
 
 import (
+	"fmt"
 	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/structure"
 	"github.com/rafailovalexey/service-generator/internal/util"
+	"log"
 	"path/filepath"
 )
 
 func main() {
-	application := "http"
+	version := "1.20"
+	application := "grpc"
+	database := "mysql"
 
-	module := "git.amocrm.ru/whatsapp-lite/whatsapp-lite-messages"
+	organization := "github.com"
+	project := "rafailovalexey"
+	directory := "whatsapp-clients"
 
 	name := &dto.NameDto{
 		LowerCaseFirstLetter:   "w",
-		CamelCaseSingular:      "WhatsappLiteMessage",
-		CamelCasePlural:        "WhatsappLiteMessages",
-		LowerCamelCaseSingular: "whatsappLiteMessage",
-		LowerCamelCasePlural:   "whatsappLiteMessages",
-		SnakeCaseSingular:      "whatsapp_lite_message",
-		SnakeCasePlural:        "whatsapp_lite_messages",
+		CamelCaseSingular:      "WhatsappClient",
+		CamelCasePlural:        "WhatsappClients",
+		LowerCamelCaseSingular: "whatsappClient",
+		LowerCamelCasePlural:   "whatsappClients",
+		SnakeCaseSingular:      "whatsapp_client",
+		SnakeCasePlural:        "whatsapp_clients",
 	}
 
-	database := "mysql"
-
-	version := "1.19"
+	module := fmt.Sprintf("%s/%s/%s", organization, project, directory)
 
 	wd, err := util.GetWorkDirectory()
 
 	if err != nil {
-		panic(err)
+		log.Panicf(err.Error())
 	}
 
-	wd = filepath.Join(wd, "whatsapp-lite-messages")
+	wd = filepath.Join(wd, directory)
 
-	structure.Generate(wd, application, version, database, module, name)
-	structure.GenerateProvider(wd, module, name)
+	err = structure.Generate(wd, application, organization, version, database, module, name)
+
+	if err != nil {
+		log.Panicf(err.Error())
+	}
+
+	err = structure.GenerateProvider(wd, module, name)
+
+	if err != nil {
+		log.Panicf(err.Error())
+	}
 }

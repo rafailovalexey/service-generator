@@ -7,15 +7,14 @@ import (
 	"sort"
 )
 
-func GetMigrationTemplate(database string, module string) []byte {
+func GetMigrationTemplate(database string) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		"\"fmt\"",
-		"\"log\"",
+		"\"database/sql\"",
+		"\"path/filepath\"",
 		"\"os\"",
-		fmt.Sprintf("\"%s/database\"", module),
 		"\"github.com/pressly/goose\"",
 	}
 
@@ -37,48 +36,51 @@ func GetMigrationTemplate(database string, module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(db database.DatabaseInterface) error {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdirectory := os.Getenv(\"MIGRATION_DIRECTORY\")"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tif directory == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the directory for migration\\n\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tinstance, err := db.Connect()"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tif err != nil {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"failed to connect %s\\n\", err.Error())"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(fmt.Sprintf("func Run(database *sql.DB) error {"))
 	data.WriteString(separator)
 
 	switch database {
 	case "mysql":
-		data.WriteString(fmt.Sprintf("\terr = goose.SetDialect(\"mysql\")"))
+		data.WriteString(fmt.Sprintf("\terr := goose.SetDialect(\"mysql\")"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\tif err != nil {"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"failed to set dialect %s\\n\", err.Error())"))
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+	case "postgres":
+		data.WriteString(fmt.Sprintf("\terr = goose.SetDialect(\"postgres\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("\t}"))
 		data.WriteString(separator)
 	}
 
+	data.WriteString(fmt.Sprintf("\twd, err := os.Getwd()"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\terr = goose.Up(instance, directory)"))
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\terr = goose.Up(database, filepath.Join(wd, \"database\", \"migration\"))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"migration failed %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\treturn err"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)

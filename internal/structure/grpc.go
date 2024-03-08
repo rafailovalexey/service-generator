@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetGrpcStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
+func GetGrpcStructure(module string, organization string, version string, name *dto.NameDto) *[]dto.NodeDto {
 	structure := &[]dto.NodeDto{
 		{
 			IsDirectory: true,
@@ -89,11 +89,6 @@ func GetGrpcStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 					Name:        "migrations",
 					Parent:      &[]dto.NodeDto{},
 				},
-				{
-					IsFile:   true,
-					Name:     util.GetFilename("database", "go"),
-					Template: template.GetDatabaseTemplate(),
-				},
 			},
 		},
 		{
@@ -124,7 +119,7 @@ func GetGrpcStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 		{
 			IsFile:   true,
 			Name:     "application.dockerfile",
-			Template: template.GetDockerTemplate(true),
+			Template: template.GetDockerTemplate(organization, version, true),
 		},
 	}
 

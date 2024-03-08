@@ -54,31 +54,35 @@ func Recursion(path string, nodes *[]dto.NodeDto) error {
 	return nil
 }
 
-func Generate(wd string, application string, version string, database string, module string, name *dto.NameDto) {
+func Generate(wd string, application string, organization string, version string, database string, module string, name *dto.NameDto) error {
 	structure := GetCoreStructure(application, version, database, module, name)
 
 	switch application {
 	case "grpc":
-		*structure = append(*structure, *GetGrpcStructure(module, name)...)
+		*structure = append(*structure, *GetGrpcStructure(module, organization, version, name)...)
 	case "http":
-		*structure = append(*structure, *GetHttpStructure(module, name)...)
+		*structure = append(*structure, *GetHttpStructure(module, organization, version, name)...)
 	case "cron":
-		*structure = append(*structure, *GetCronStructure(module, name)...)
+		*structure = append(*structure, *GetCronStructure(module, organization, version, name)...)
 	}
 
 	switch database {
+	case "postgres":
+		*structure = append(*structure, *GetPostgresStructure()...)
 	case "mysql":
-		*structure = append(*structure, *GetMySQLStructure()...)
+		*structure = append(*structure, *GetMySqlStructure()...)
 	}
 
 	err := Recursion(wd, structure)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func GenerateProvider(wd string, module string, name *dto.NameDto) {
+func GenerateProvider(wd string, module string, name *dto.NameDto) error {
 	available := map[string]struct{}{
 		"handler":        {},
 		"implementation": {},
@@ -94,7 +98,7 @@ func GenerateProvider(wd string, module string, name *dto.NameDto) {
 	directories, err := util.GetDirectories(filepath.Join(wd, "internal"))
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	layers := make([]string, 0, 10)
@@ -141,6 +145,8 @@ func GenerateProvider(wd string, module string, name *dto.NameDto) {
 	err = Recursion(wd, structure)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }

@@ -8,26 +8,32 @@ import (
 	"sort"
 )
 
-func GetApplicationTemplate(module string, application string, name *dto.NameDto) []byte {
+func GetApplicationTemplate(module string, application string, database string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	typ := ""
+	t := ""
 
 	switch application {
 	case "http":
-		typ = "http_server"
+		t = "http_server"
 	case "grpc":
-		typ = "grpc_server"
+		t = "grpc_server"
 	case "cron":
-		typ = "cron_scheduler"
+		t = "cron_scheduler"
 	}
 
 	imports := []string{
 		"\"context\"",
-		"\"github.com/joho/godotenv\"",
-		fmt.Sprintf("\"%s/database\"", module),
-		fmt.Sprintf("\"%s/cmd/%s\"", module, typ),
+		"\"database/sql\"",
+		"\"fmt\"",
+		"\"os\"",
+		"\"strconv\"",
+		"\"time\"",
+		"\"github.com/sirupsen/logrus\"",
+		fmt.Sprintf("\"%s/database/%s\"", module, database),
+		fmt.Sprintf("\"%s/config\"", module),
+		fmt.Sprintf("\"%s/cmd/%s\"", module, t),
 		fmt.Sprintf("\"%s/cmd/migration\"", module),
 		fmt.Sprintf("\"%s/internal/provider\"", module),
 		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name.LowerCamelCaseSingular, module, name.SnakeCasePlural),
@@ -55,19 +61,31 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tInitializeDependency(context.Context) error"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tInitializeEnvironment(context.Context) error"))
+	data.WriteString(fmt.Sprintf("\tInitializeConfig(context.Context) error"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
+	data.WriteString(fmt.Sprintf("\tInitializeLogger(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tInitializeDatabase(context.Context) error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tInitializeMigration(context.Context) error"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tRun()"))
+	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tRun() error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("type Application struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdatabase *sql.DB"))
+	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 	data.WriteString(separator)
@@ -107,11 +125,15 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tinits := []func(context.Context) error{"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\ta.InitializeEnvironment,"))
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeConfig,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeLogger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeDatabase,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeMigration,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -139,12 +161,508 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (a *Application) InitializeEnvironment(_ context.Context) error {"))
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeConfig(_ context.Context) error {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\terr := godotenv.Load(\".env\")"))
+	data.WriteString(fmt.Sprintf("\tdebugString := os.Getenv(\"DEBUG\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("\tif debugString == \"\" {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the debug value\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tdebug, err := strconv.ParseBool(debugString)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing debug value: %s\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	switch database {
+	case "postgres":
+		data.WriteString(fmt.Sprintf("\tusername := os.Getenv(\"POSTGRES_USERNAME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif username == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the username for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tpassword := os.Getenv(\"POSTGRES_PASSWORD\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif password == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the password for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"POSTGRES_HOSTNAME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif hostname == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the hostname for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"POSTGRES_PORT\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the port for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tdb := os.Getenv(\"POSTGRES_DATABASE\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif db == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the database for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxIdleConnectionsString := os.Getenv(\"POSTGRES_MAX_IDLE_CONNECTIONS\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif maxIdleConnectionsString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the max idle connections for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxIdleConnections, err := strconv.Atoi(maxIdleConnectionsString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing max idle connections value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxOpenConnectionsString := os.Getenv(\"POSTGRES_MAX_OPEN_CONNECTIONS\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif maxIdleConnectionsString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the max open connections for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxOpenConnections, err := strconv.Atoi(maxOpenConnectionsString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing max open connections value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxIdleTimeString := os.Getenv(\"POSTGRES_CONNECTION_MAX_IDLE_TIME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif connectionMaxIdleTimeString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the connection max idle time for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxIdleTime, err := strconv.Atoi(connectionMaxIdleTimeString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing connection max idle time value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxLifeTimeString := os.Getenv(\"POSTGRES_CONNECTION_MAX_LIFE_TIME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif connectionMaxLifeTimeString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the connection max life time for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxLifeTime, err := strconv.Atoi(connectionMaxLifeTimeString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing connection max life time value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tp := &postgres.PostgresDatabaseConfig{"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tHostname:\thostname,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tPort:\tport,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tUsername:\tusername,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tPassword:\tpassword,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tDatabase:\tdb,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tMaxIdleConnections:\tmaxIdleConnections,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tMaxOpenConnections:\tmaxOpenConnections,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tConnectionMaxLifeTime:\ttime.Duration(connectionMaxLifeTime),"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tConnectionMaxIdleTime:\ttime.Duration(connectionMaxIdleTime),"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "mysql":
+		data.WriteString(fmt.Sprintf("\tusername := os.Getenv(\"MYSQL_USERNAME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif username == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the username for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tpassword := os.Getenv(\"MYSQL_PASSWORD\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif password == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the password for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"MYSQL_HOSTNAME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif hostname == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the hostname for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"MYSQL_PORT\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the port for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tdb := os.Getenv(\"MYSQL_DATABASE\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif db == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the database for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxIdleConnectionsString := os.Getenv(\"MYSQL_MAX_IDLE_CONNECTIONS\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif maxIdleConnectionsString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the max idle connections for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxIdleConnections, err := strconv.Atoi(maxIdleConnectionsString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing max idle connections value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxOpenConnectionsString := os.Getenv(\"MYSQL_MAX_OPEN_CONNECTIONS\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif maxIdleConnectionsString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the max open connections for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tmaxOpenConnections, err := strconv.Atoi(maxOpenConnectionsString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing max open connections value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxIdleTimeString := os.Getenv(\"MYSQL_CONNECTION_MAX_IDLE_TIME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif connectionMaxIdleTimeString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the connection max idle time for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxIdleTime, err := strconv.Atoi(connectionMaxIdleTimeString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing connection max idle time value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxLifeTimeString := os.Getenv(\"MYSQL_CONNECTION_MAX_LIFE_TIME\")"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif connectionMaxLifeTimeString == \"\" {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the connection max life time for the database\")"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tconnectionMaxLifeTime, err := strconv.Atoi(connectionMaxLifeTimeString)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing connection max life time value: %s\", err)"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tm := &mysql.MySqlDatabaseConfig{"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tHostname:\thostname,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tPort:\tport,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tUsername:\tusername,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tPassword:\tpassword,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tDatabase:\tdb,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tMaxIdleConnections:\tmaxIdleConnections,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tMaxOpenConnections:\tmaxOpenConnections,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tConnectionMaxLifeTime:\ttime.Duration(connectionMaxLifeTime),"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tConnectionMaxIdleTime:\ttime.Duration(connectionMaxIdleTime),"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("\tc := &config.Config{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tDebug:\tdebug,"))
+	data.WriteString(separator)
+	switch database {
+	case "postgres":
+		data.WriteString(fmt.Sprintf("\t\tDatabase:\tp,"))
+		data.WriteString(separator)
+	case "mysql":
+		data.WriteString(fmt.Sprintf("\t\tDatabase:\tm,"))
+		data.WriteString(separator)
+	}
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\ta.config = c"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeLogger(_ context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlevel := logrus.InfoLevel"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif a.config.Debug {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlevel = logrus.DebugLevel"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tformatter := &logrus.JSONFormatter{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tFieldMap: logrus.FieldMap{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t\tlogrus.FieldKeyMsg: \"message\","))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t},"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tl := logrus.New()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tl.Formatter = formatter"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tl.SetLevel(level)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tl.SetOutput(os.Stdout)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tl.SetNoLock()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\ta.logger = l"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeDatabase(_ context.Context) error {"))
+	data.WriteString(separator)
+
+	switch database {
+	case "postgres":
+		data.WriteString(fmt.Sprintf("\tdatabase, err := postgres.NewPostgresDatabase(a.config.Database)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "mysql":
+		data.WriteString(fmt.Sprintf("\tdatabase, err := mysql.NewMySqlDatabase(a.config.Database)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf("\ta.database = database"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn nil"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\terr := migration.Run(a.database)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\treturn err"))
@@ -152,7 +670,6 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-
 	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -171,28 +688,7 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tdb := database.NewMySQLDatabase()"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\terr := migration.Run(db)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tif err != nil {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn err"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn nil"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("func (a *Application) Run() {"))
+	data.WriteString(fmt.Sprintf("func (a *Application) Run() error {"))
 	data.WriteString(separator)
 
 	switch application {
@@ -201,24 +697,72 @@ func GetApplicationTemplate(module string, application string, name *dto.NameDto
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\t%s.Run(implementation)", typ))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run(a.config, implementation)", t))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "http":
 		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\t%s.Run(handler)", typ))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run(handler)", t))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "cron":
 		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\t%s.Run(service)", typ))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run(service)", t))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	default:
-		data.WriteString(fmt.Sprintf("\terr := %s.Run()", typ))
+		data.WriteString(fmt.Sprintf("\terr := %s.Run()", t))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	}
 
@@ -234,7 +778,7 @@ func GetMainTemplate(module string) []byte {
 
 	imports := []string{
 		"\"log\"",
-		"\"golang.org/x/net/context\"",
+		"\"context\"",
 		fmt.Sprintf("\"%s/cmd/application\"", module),
 	}
 
@@ -274,7 +818,14 @@ func GetMainTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\ta.Run()"))
+	data.WriteString(fmt.Sprintf("\terr = a.Run()"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"an application error occurred %v\\n\", err)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -422,50 +973,61 @@ func GetDockerIgnoreTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetDockerTemplate(withPort bool) []byte {
+func GetDockerTemplate(organization string, version string, port bool) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("FROM golang:latest"))
+	data.WriteString(fmt.Sprintf("FROM golang:%s-alpine", version))
 	data.WriteString(separator)
 	data.WriteString(separator)
-
 	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-
+	data.WriteString(fmt.Sprintf("RUN apk update"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apk upgrade"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN apk add git openssh gcc libc-dev ca-certificates"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN mkdir -p ~/.ssh"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN chmod 600 ~/.ssh"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN ssh-keyscan %s >> ~/.ssh/known_hosts", organization))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN git config --global url.\"git@%s:\".insteadOf \"https://%s/\"", organization, organization))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("ENV PATH=\"$PATH:$GOROOT/bin:$GOPATH/bin\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("ENV GOPRIVATE=%s", organization))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("COPY go.mod go.mod"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("COPY go.sum go.sum"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("RUN --mount=type=ssh go mod download"))
+	data.WriteString(separator)
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("COPY . ."))
 	data.WriteString(separator)
 	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("RUN apt-get update --yes"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("RUN apt-get upgrade --yes"))
+	data.WriteString(fmt.Sprintf("RUN go build -o build/main main.go"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("RUN apt-get install --yes make"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("RUN export PATH=\"$PATH:$(go env GOPATH)/bin\""))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("RUN make download"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("RUN make build"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	if withPort {
+	if port {
 		data.WriteString(fmt.Sprintf("EXPOSE 3000"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 	}
 
 	data.WriteString(fmt.Sprintf("CMD [\"./build/main\"]"))
-	data.WriteString(separator)
 
 	return data.Bytes()
 }
@@ -474,17 +1036,28 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("# Migrations"))
+	data.WriteString(fmt.Sprintf("# DEBUG"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("MIGRATION_DIRECTORY=database/migrations"))
+	data.WriteString(fmt.Sprintf("DEBUG=true"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	switch application {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("# GRPC"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("HOSTNAME=localhost"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("PORT=3000"))
+		data.WriteString(separator)
+		data.WriteString(separator)
 	case "http":
 		data.WriteString(fmt.Sprintf("# HTTP"))
 		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("HOSTNAME=localhost"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("PORT=3000"))
 		data.WriteString(separator)
@@ -506,6 +1079,36 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("MYSQL_DATABASE=database"))
 		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_MAX_IDLE_CONNECTIONS=10"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_MAX_OPEN_CONNECTIONS=10"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_CONNECTION_MAX_IDLE_TIME=600000000000"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("MYSQL_CONNECTION_MAX_LIFE_TIME=600000000000"))
+		data.WriteString(separator)
+	case "postgres":
+		data.WriteString(fmt.Sprintf("# Postgres"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_USERNAME=mysql"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_PASSWORD=mysql"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_HOSTNAME=localhost"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_PORT=5432"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_DATABASE=database"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_MAX_IDLE_CONNECTIONS=10"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_MAX_OPEN_CONNECTIONS=10"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_CONNECTION_MAX_IDLE_TIME=600000000000"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("POSTGRES_CONNECTION_MAX_LIFE_TIME=600000000000"))
+		data.WriteString(separator)
 	}
 
 	return data.Bytes()
@@ -525,17 +1128,17 @@ func GetGoTemplate(module string, version string) []byte {
 	return data.Bytes()
 }
 
-func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
+func GetMakefileTemplate(module string, application string, name *dto.NameDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("include .env"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("export"))
+	data.WriteString(fmt.Sprintf("# Variables"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("# Variables"))
+	data.WriteString(fmt.Sprintf("DOCKERFILE=\"application.dockerfile\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("CONTAINER_TAG=\"registry.%s:latest\"", module))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -607,54 +1210,6 @@ func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("# Tidy"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("tidy:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Tidy...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go mod tidy"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("# Download"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("download:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Downloading dependencies...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go mod download"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("# Run"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("run:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Running...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go run main.go"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("# Build"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("build:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Building...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@go build -o build/main main.go"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
 	data.WriteString(fmt.Sprintf("# Migration create"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -681,14 +1236,24 @@ func GetMakefileTemplate(application string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch application {
-	case "grpc":
-		data.WriteString(fmt.Sprintf(".PHONY: grpc-generate, mock-generate, generate, tidy, download, run, build, test"))
-		data.WriteString(separator)
-	default:
-		data.WriteString(fmt.Sprintf(".PHONY: mock-generate, generate, tidy, download, run, build, test"))
-		data.WriteString(separator)
-	}
+	data.WriteString(fmt.Sprintf("# Docker build"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("docker-build:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdocker build --ssh default . --file ${DOCKERFILE} --tag ${CONTAINER_TAG}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("# Docker push"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("docker-push:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdocker image push ${CONTAINER_TAG}"))
+	data.WriteString(separator)
 
 	return data.Bytes()
 }

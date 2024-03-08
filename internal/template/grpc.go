@@ -93,7 +93,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("func LoggingInterceptor() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
@@ -180,7 +180,7 @@ func GetGrpcTracingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("func TracingInterceptor() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
@@ -288,7 +288,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware() grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {"))
+	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tmd, isExist := metadata.FromIncomingContext(ctx)"))
 	data.WriteString(separator)
@@ -377,7 +377,6 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 		"\"google.golang.org/grpc/reflection\"",
 		"\"log\"",
 		"\"net\"",
-		"\"os\"",
 	}
 
 	sort.Strings(imports)
@@ -398,23 +397,19 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(api %s_v1.%sV1Server) {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("type GrpcServerConfig struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\thostname := os.Getenv(\"HOSTNAME\")"))
+	data.WriteString(fmt.Sprintf("\tHostname\tstring"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tport := os.Getenv(\"PORT\")"))
+	data.WriteString(fmt.Sprintf("\tPort\tstring"))
 	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("\tif port == \"\" {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"specify the port\")"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", hostname, port)"))
+	data.WriteString(fmt.Sprintf("func Run(config *GrpcServerConfig, api %s_v1.%sV1Server) error {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", config.Hostname, config.Port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -428,7 +423,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
+	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"grpc server startup error %v\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -468,9 +463,12 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"grpc server startup error %v\", err)"))
+	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"grpc server startup error %v\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn nil"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)

@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetCronStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
+func GetCronStructure(module string, organization string, version string, name *dto.NameDto) *[]dto.NodeDto {
 	structure := &[]dto.NodeDto{
 		{
 			IsDirectory: true,
@@ -28,7 +28,7 @@ func GetCronStructure(module string, name *dto.NameDto) *[]dto.NodeDto {
 		{
 			IsFile:   true,
 			Name:     "application.dockerfile",
-			Template: template.GetDockerTemplate(false),
+			Template: template.GetDockerTemplate(organization, version, false),
 		},
 	}
 
