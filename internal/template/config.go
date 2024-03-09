@@ -48,22 +48,22 @@ func GetConfigTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("type Config struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tDebug bool `mapstructure:\"DEBUG\"`"))
+	data.WriteString(fmt.Sprintf("\tDebug bool `env:\"DEBUG,required\"`"))
 	data.WriteString(separator)
 	switch application.Type {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("\tGrpcServer grpc_server.GrpcServerConfig `mapstructure:\",squash\"`"))
+		data.WriteString(fmt.Sprintf("\tGrpcServer grpc_server.GrpcServerConfig"))
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("\tHttpServer http_server.HttpServerConfig `mapstructure:\",squash\"`"))
+		data.WriteString(fmt.Sprintf("\tHttpServer http_server.HttpServerConfig"))
 		data.WriteString(separator)
 	}
 	switch application.Database {
 	case "postgres":
-		data.WriteString(fmt.Sprintf("\tDatabase postgres.PostgresDatabaseConfig `mapstructure:\",squash\"`"))
+		data.WriteString(fmt.Sprintf("\tDatabase postgres.PostgresDatabaseConfig"))
 		data.WriteString(separator)
 	case "mysql":
-		data.WriteString(fmt.Sprintf("\tDatabase mysql.MySqlDatabaseConfig `mapstructure:\",squash\"`"))
+		data.WriteString(fmt.Sprintf("\tDatabase mysql.MySqlDatabaseConfig"))
 		data.WriteString(separator)
 	}
 	data.WriteString(fmt.Sprintf("}"))

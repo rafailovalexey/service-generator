@@ -27,7 +27,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		"\"context\"",
 		"\"database/sql\"",
 		"\"os\"",
-		"\"github.com/spf13/viper\"",
+		"\"github.com/caarlos0/env\"",
 		"\"github.com/sirupsen/logrus\"",
 		fmt.Sprintf("\"%s/database/%s\"", application.Module, application.Database),
 		fmt.Sprintf("\"%s/config\"", application.Module),
@@ -181,11 +181,23 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeConfig(_ context.Context) error {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tviper.AutomaticEnv()"))
+	data.WriteString(fmt.Sprintf("\tvar c config.Config"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\terr := viper.ReadInConfig()"))
+	data.WriteString(fmt.Sprintf("\terr = env.Parse(&c)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn err"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.Database)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -197,21 +209,56 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tvar c *config.Config"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServerConfig)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\terr = viper.Unmarshal(&c)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tif err != nil {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn err"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServerConfig.Authentication)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServerConfig)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServerConfig.Authentication)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
 
 	data.WriteString(fmt.Sprintf("\ta.config = c"))
 	data.WriteString(separator)
