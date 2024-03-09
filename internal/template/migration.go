@@ -3,11 +3,12 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetMigrationTemplate(database string) []byte {
+func GetMigrationTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -39,7 +40,7 @@ func GetMigrationTemplate(database string) []byte {
 	data.WriteString(fmt.Sprintf("func Run(database *sql.DB) error {"))
 	data.WriteString(separator)
 
-	switch database {
+	switch application.Database {
 	case "mysql":
 		data.WriteString(fmt.Sprintf("\terr := goose.SetDialect(\"mysql\")"))
 		data.WriteString(separator)

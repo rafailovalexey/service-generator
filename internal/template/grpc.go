@@ -8,17 +8,17 @@ import (
 	"sort"
 )
 
-func GetGrpcServerImplementationTemplate(module string, name *dto.NameDto) []byte {
+func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", application.Module, application.Names.SnakeCasePlural),
 	}
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("package %s", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -34,23 +34,23 @@ func GetGrpcServerImplementationTemplate(module string, name *dto.NameDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", name.SnakeCasePlural, name.CamelCasePlural))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) mustEmbedUnimplemented%sV1Server() {", application.Names.LowerCaseFirstLetter, application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn"))
 	data.WriteString(separator)
@@ -121,7 +121,7 @@ func GetGrpcLoggingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("\t\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\t\tlogger.Debugf(\"error in grpc request %s (%s) \\n %v\", info.FullMethod, trace, err)"))
+	data.WriteString(fmt.Sprint("\t\t\tlogger.Debugf(\"error in grpc request %s (%s) %v\", info.FullMethod, trace, err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t}"))
 	data.WriteString(separator)
@@ -339,7 +339,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
+func GetGrpcServerTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -349,9 +349,9 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 		"\"google.golang.org/grpc\"",
 		"\"google.golang.org/grpc/reflection\"",
 		"\"github.com/sirupsen/logrus\"",
-		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
-		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
-		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
+		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", application.Module),
+		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", application.Module),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", application.Module, application.Names.SnakeCasePlural),
 	}
 
 	sort.Strings(imports)
@@ -390,7 +390,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger\t*logrus.Logger"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tapi\twhatsapp_clients_v1.WhatsappClientsV1Server"))
+	data.WriteString(fmt.Sprintf("\tapi\t%s_v1.%sV1Server", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -414,7 +414,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tapi whatsapp_clients_v1.WhatsappClientsV1Server,"))
+	data.WriteString(fmt.Sprintf("\tapi %s_v1.%sV1Server,", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(") *GrpcServer {"))
 	data.WriteString(separator)
@@ -432,7 +432,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (g *GrpcServer) Run() error {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("func (g *GrpcServer) Run() error {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", g.config.Hostname, g.config.Port)"))
 	data.WriteString(separator)
@@ -474,7 +474,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, g.api)", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, g.api)", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -501,7 +501,7 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	return data.Bytes()
 }
 
-func GetProtoTemplate(module string, name *dto.NameDto) []byte {
+func GetProtoTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -509,15 +509,15 @@ func GetProtoTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("package %s_v1;", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("package %s_v1;", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", module, "api", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("option go_package = \"%s/%s/%s_v1\";", application.Module, "api", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("service %sV1 {}", name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("service %sV1 {}", application.Names.CamelCasePlural))
 	data.WriteString(separator)
 
 	return data.Bytes()

@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
+func GetHttpHandlerDefinitionTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -34,7 +34,7 @@ func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tHandle(response http.ResponseWriter, request *http.Request)"))
 	data.WriteString(separator)
@@ -44,19 +44,19 @@ func GetHttpHandlerDefinitionTemplate(name *dto.NameDto) []byte {
 	return data.Bytes()
 }
 
-func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []byte {
+func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		fmt.Sprintf("\"%s/util\"", module),
+		fmt.Sprintf("\"%s/util\"", application.Module),
 		fmt.Sprintf("\"net/http\""),
-		fmt.Sprintf("definition \"%s/%s/%s\"", module, "internal", "handler"),
+		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", "handler"),
 	}
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("package %s", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -72,23 +72,23 @@ func GetHttpHandlerImplementationTemplate(module string, name *dto.NameDto) []by
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", name.LowerCaseFirstLetter, name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", application.Names.LowerCaseFirstLetter, application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tswitch request.Method {"))
 	data.WriteString(separator)
@@ -210,7 +210,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tl.logger.Debugf(\"%s %s %s - %s %v\\n\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(fmt.Sprint("\t\tl.logger.Debugf(\"%s %s %s - %s %v\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
@@ -256,13 +256,13 @@ func GetHttpMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
+func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
 		"\"net/http\"",
-		fmt.Sprintf("\"%s/util\"", module),
+		fmt.Sprintf("\"%s/util\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -471,7 +471,7 @@ func GetHttpChainMiddlewareTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
+func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -479,10 +479,10 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 		"\"fmt\"",
 		"\"net/http\"",
 		"\"github.com/sirupsen/logrus\"",
-		fmt.Sprintf("\"%s/internal/handler\"", module),
-		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", module),
-		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", module),
-		fmt.Sprintf("\"%s/util\"", module),
+		fmt.Sprintf("\"%s/internal/handler\"", application.Module),
+		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", application.Module),
+		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", application.Module),
+		fmt.Sprintf("\"%s/util\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -521,7 +521,7 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\twhatsappClientHandler handler.WhatsappClientHandlerInterface"))
+	data.WriteString(fmt.Sprintf("\t%sHandler handler.%sHandlerInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -545,7 +545,7 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\twhatsappClientHandler handler.WhatsappClientHandlerInterface,"))
+	data.WriteString(fmt.Sprintf("\t%sHandler handler.%sHandlerInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(") *HttpServer {"))
 	data.WriteString(separator)
@@ -555,7 +555,7 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\twhatsappClientHandler: whatsappClientHandler,"))
+	data.WriteString(fmt.Sprintf("\t\t%sHandler: %sHandler,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -581,11 +581,11 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\troute := middlewares(http.HandlerFunc(h.%sHandler.Handle))", name.LowerCamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\troute := middlewares(http.HandlerFunc(h.%sHandler.Handle))", application.Names.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", route)", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", route)", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(util.ResponseNotFound)))"))
 	data.WriteString(separator)
@@ -595,7 +595,7 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\th.logger.Infof(\"http server starts at address %s\\n\", address)"))
+	data.WriteString(fmt.Sprint("\th.logger.Infof(\"http server starts at address %s\", address)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -605,7 +605,7 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"error when starting the http server %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\treturn fmt.Errorf(\"error when starting the http server %v\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)

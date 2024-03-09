@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetCoreStructure(application string, version string, database string, module string, name *dto.NameDto) *[]dto.NodeDto {
+func GetCoreStructure(application *dto.ApplicationDto) *[]dto.NodeDto {
 	structure := &[]dto.NodeDto{
 		{
 			IsDirectory: true,
@@ -30,18 +30,7 @@ func GetCoreStructure(application string, version string, database string, modul
 						{
 							IsFile:   true,
 							Name:     util.GetFilename("application", "go"),
-							Template: template.GetApplicationTemplate(module, application, database, name),
-						},
-					},
-				},
-				{
-					IsDirectory: true,
-					Name:        "migration",
-					Parent: &[]dto.NodeDto{
-						{
-							IsFile:   true,
-							Name:     util.GetFilename("migration", "go"),
-							Template: template.GetMigrationTemplate(database),
+							Template: template.GetApplicationTemplate(application),
 						},
 					},
 				},
@@ -54,7 +43,7 @@ func GetCoreStructure(application string, version string, database string, modul
 				{
 					IsFile:   true,
 					Name:     util.GetFilename("config", "go"),
-					Template: template.GetConfigTemplate(module, application, database),
+					Template: template.GetConfigTemplate(application),
 				},
 			},
 		},
@@ -62,11 +51,11 @@ func GetCoreStructure(application string, version string, database string, modul
 			IsDirectory: true,
 			Name:        "internal",
 			Parent: &[]dto.NodeDto{
-				*GetBaseDefinitionAndImplementationStructure(module, "converter", name),
-				*GetBaseDefinitionAndImplementationStructure(module, "service", name),
-				*GetBaseDefinitionAndImplementationStructure(module, "repository", name),
-				*GetDataTransferObjectStructure("model", name),
-				*GetDataTransferObjectStructure("dto", name),
+				*GetBaseDefinitionAndImplementationStructure(application, "converter"),
+				*GetBaseDefinitionAndImplementationStructure(application, "service"),
+				*GetBaseDefinitionAndImplementationStructure(application, "repository"),
+				*GetDataTransferObjectStructure(application, "model"),
+				*GetDataTransferObjectStructure(application, "dto"),
 			},
 		},
 		{
@@ -82,32 +71,32 @@ func GetCoreStructure(application string, version string, database string, modul
 		{
 			IsFile:   true,
 			Name:     util.GetFilename(".env", ""),
-			Template: template.GetEnvironmentTemplate(application, database),
+			Template: template.GetEnvironmentTemplate(application),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename(".example.env", ""),
-			Template: template.GetEnvironmentTemplate(application, database),
+			Template: template.GetEnvironmentTemplate(application),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename("main", "go"),
-			Template: template.GetMainTemplate(module),
+			Template: template.GetMainTemplate(application),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename("go", "mod"),
-			Template: template.GetGoTemplate(module, version),
+			Template: template.GetGoTemplate(application),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename("Makefile", ""),
-			Template: template.GetMakefileTemplate(module, application, name),
+			Template: template.GetMakefileTemplate(application),
 		},
 		{
 			IsFile:   true,
 			Name:     util.GetFilename("README", "md"),
-			Template: template.GetReadmeTemplate(module),
+			Template: template.GetReadmeTemplate(application),
 		},
 	}
 

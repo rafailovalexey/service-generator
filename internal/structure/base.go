@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetBaseDefinitionAndImplementationStructure(module string, layer string, name *dto.NameDto) *dto.NodeDto {
+func GetBaseDefinitionAndImplementationStructure(application *dto.ApplicationDto, layer string) *dto.NodeDto {
 	structure := &dto.NodeDto{
 		IsDirectory: true,
 		Name:        layer,
@@ -14,16 +14,16 @@ func GetBaseDefinitionAndImplementationStructure(module string, layer string, na
 			{
 				IsFile:   true,
 				Name:     util.GetFilename(layer, "go"),
-				Template: template.GetBaseDefinitionTemplate(layer, name),
+				Template: template.GetBaseDefinitionTemplate(application, layer),
 			},
 			{
 				IsDirectory: true,
-				Name:        name.SnakeCasePlural,
+				Name:        application.Names.SnakeCasePlural,
 				Parent: &[]dto.NodeDto{
 					{
 						IsFile:   true,
 						Name:     util.GetFilename(layer, "go"),
-						Template: template.GetBaseImplementationTemplate(module, layer, name),
+						Template: template.GetBaseImplementationTemplate(application, layer),
 					},
 				},
 			},

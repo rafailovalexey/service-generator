@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-func GetBaseDefinitionTemplate(layer string, name *dto.NameDto) []byte {
+func GetBaseDefinitionTemplate(application *dto.ApplicationDto, layer string) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -16,23 +16,23 @@ func GetBaseDefinitionTemplate(layer string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("type %s%sInterface interface {}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
 
 	return data.Bytes()
 }
 
-func GetBaseImplementationTemplate(module string, layer string, name *dto.NameDto) []byte {
+func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
-		fmt.Sprintf("definition \"%s/%s/%s\"", module, "internal", layer),
+		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", layer),
 	}
 
 	sort.Strings(imports)
 
-	data.WriteString(fmt.Sprintf("package %s", name.SnakeCasePlural))
+	data.WriteString(fmt.Sprintf("package %s", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -48,17 +48,17 @@ func GetBaseImplementationTemplate(module string, layer string, name *dto.NameDt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s struct {}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("var _ definition.%s%sInterface = (*%s%s)(nil)", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer), name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", name.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)

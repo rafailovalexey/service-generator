@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
+func GetCronSchedulerTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -18,7 +18,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 		"\"syscall\"",
 		"\"github.com/robfig/cron\"",
 		"\"github.com/sirupsen/logrus\"",
-		fmt.Sprintf("\"%s/internal/service\"", module),
+		fmt.Sprintf("\"%s/internal/service\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -43,7 +43,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger\t*logrus.Logger"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\twhatsappClientService\tservice.WhatsappClientServiceInterface"))
+	data.WriteString(fmt.Sprintf("\t%sService\tservice.%sServiceInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -64,7 +64,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\twhatsappClientService service.WhatsappClientServiceInterface,"))
+	data.WriteString(fmt.Sprintf("\t%sService service.%sServiceInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(") *CronScheduler {"))
 	data.WriteString(separator)
@@ -72,7 +72,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\twhatsappClientService: whatsappClientService,"))
+	data.WriteString(fmt.Sprintf("\t\t%sService: %sService,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -90,7 +90,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tlogger.Infof(\"application cron started\")"))
+	data.WriteString(fmt.Sprintf("\tc.logger.Infof(\"application cron started\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -106,7 +106,7 @@ func GetCronSchedulerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\tlogger.Infof(\"application cron stopped\")"))
+	data.WriteString(fmt.Sprintf("\tc.logger.Infof(\"application cron stopped\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 

@@ -3,28 +3,29 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"github.com/rafailovalexey/service-generator/internal/dto"
 	"github.com/rafailovalexey/service-generator/internal/util"
 	"sort"
 )
 
-func GetConfigTemplate(module string, application string, database string) []byte {
+func GetConfigTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{}
 
-	switch database {
+	switch application.Database {
 	case "postgres":
-		imports = append(imports, fmt.Sprintf("\"%s/database/%s\"", module, "postgres"))
+		imports = append(imports, fmt.Sprintf("\"%s/database/%s\"", application.Module, "postgres"))
 	case "mysql":
-		imports = append(imports, fmt.Sprintf("\"%s/database/%s\"", module, "mysql"))
+		imports = append(imports, fmt.Sprintf("\"%s/database/%s\"", application.Module, "mysql"))
 	}
 
-	switch application {
+	switch application.Type {
 	case "grpc":
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/grpc_server\"", module))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/grpc_server\"", application.Module))
 	case "http":
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/http_server\"", module))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/http_server\"", application.Module))
 	}
 
 	sort.Strings(imports)
@@ -49,7 +50,7 @@ func GetConfigTemplate(module string, application string, database string) []byt
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tDebug\tbool"))
 	data.WriteString(separator)
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("\tGrpcServer\t*grpc_server.GrpcServerConfig"))
 		data.WriteString(separator)
@@ -57,7 +58,7 @@ func GetConfigTemplate(module string, application string, database string) []byt
 		data.WriteString(fmt.Sprintf("\tHttpServer\t*http_server.HttpServerConfig"))
 		data.WriteString(separator)
 	}
-	switch database {
+	switch application.Database {
 	case "postgres":
 		data.WriteString(fmt.Sprintf("\tDatabase\t*postgres.PostgresDatabaseConfig"))
 		data.WriteString(separator)

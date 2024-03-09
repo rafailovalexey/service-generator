@@ -1,52 +1,35 @@
 package main
 
 import (
-	"fmt"
 	"github.com/rafailovalexey/service-generator/internal/dto"
-	"github.com/rafailovalexey/service-generator/internal/structure"
-	"github.com/rafailovalexey/service-generator/internal/util"
+	"github.com/rafailovalexey/service-generator/internal/facade"
 	"log"
-	"path/filepath"
 )
 
 func main() {
-	version := "1.20"
-	application := "http"
-	database := "postgres"
+	names := dto.NewNameDto(
+		"w",
+		"WhatsappClientCron",
+		"WhatsappClientsCron",
+		"whatsappClientCron",
+		"whatsappClientsCron",
+		"whatsapp_client_cron",
+		"whatsapp_clients_cron",
+	)
 
-	organization := "github.com"
-	project := "rafailovalexey"
-	directory := "whatsapp-clients"
+	application := dto.NewApplicationDto(
+		"1.20",
+		"cron",
+		"postgres",
+		"github.com",
+		"rafailovalexey",
+		"whatsapp-clients-cron",
+		names,
+	)
 
-	name := &dto.NameDto{
-		LowerCaseFirstLetter:   "w",
-		CamelCaseSingular:      "WhatsappClient",
-		CamelCasePlural:        "WhatsappClients",
-		LowerCamelCaseSingular: "whatsappClient",
-		LowerCamelCasePlural:   "whatsappClients",
-		SnakeCaseSingular:      "whatsapp_client",
-		SnakeCasePlural:        "whatsapp_clients",
-	}
-
-	module := fmt.Sprintf("%s/%s/%s", organization, project, directory)
-
-	wd, err := util.GetWorkDirectory()
-
-	if err != nil {
-		log.Panicf(err.Error())
-	}
-
-	wd = filepath.Join(wd, directory)
-
-	err = structure.Generate(wd, application, organization, version, database, module, name)
+	err := facade.Create(application)
 
 	if err != nil {
-		log.Panicf(err.Error())
-	}
-
-	err = structure.GenerateProvider(wd, module, name)
-
-	if err != nil {
-		log.Panicf(err.Error())
+		log.Panicf("error %v", err)
 	}
 }

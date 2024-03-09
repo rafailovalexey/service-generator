@@ -6,7 +6,7 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetGrpcStructure(module string, organization string, version string, name *dto.NameDto) *[]dto.NodeDto {
+func GetGrpcStructure(application *dto.ApplicationDto) *[]dto.NodeDto {
 	structure := &[]dto.NodeDto{
 		{
 			IsDirectory: true,
@@ -14,12 +14,12 @@ func GetGrpcStructure(module string, organization string, version string, name *
 			Parent: &[]dto.NodeDto{
 				{
 					IsDirectory: true,
-					Name:        name.SnakeCasePlural + "_" + "v1",
+					Name:        application.Names.SnakeCasePlural + "_" + "v1",
 					Parent: &[]dto.NodeDto{
 						{
 							IsFile:   true,
-							Name:     util.GetFilename(name.SnakeCasePlural, "proto"),
-							Template: template.GetProtoTemplate(module, name),
+							Name:     util.GetFilename(application.Names.SnakeCasePlural, "proto"),
+							Template: template.GetProtoTemplate(application),
 						},
 					},
 				},
@@ -47,7 +47,7 @@ func GetGrpcStructure(module string, organization string, version string, name *
 						{
 							IsFile:   true,
 							Name:     util.GetFilename("grpc_server", "go"),
-							Template: template.GetGrpcServerTemplate(module, name),
+							Template: template.GetGrpcServerTemplate(application),
 						},
 						{
 							IsDirectory: true,
@@ -78,6 +78,17 @@ func GetGrpcStructure(module string, organization string, version string, name *
 						},
 					},
 				},
+				{
+					IsDirectory: true,
+					Name:        "migration",
+					Parent: &[]dto.NodeDto{
+						{
+							IsFile:   true,
+							Name:     util.GetFilename("migration", "go"),
+							Template: template.GetMigrationTemplate(application),
+						},
+					},
+				},
 			},
 		},
 		{
@@ -86,7 +97,7 @@ func GetGrpcStructure(module string, organization string, version string, name *
 			Parent: &[]dto.NodeDto{
 				{
 					IsDirectory: true,
-					Name:        "migrations",
+					Name:        "migration",
 					Parent:      &[]dto.NodeDto{},
 				},
 			},
@@ -95,20 +106,20 @@ func GetGrpcStructure(module string, organization string, version string, name *
 			IsDirectory: true,
 			Name:        "internal",
 			Parent: &[]dto.NodeDto{
-				*GetBaseDefinitionAndImplementationStructure(module, "controller", name),
-				*GetBaseDefinitionAndImplementationStructure(module, "validation", name),
+				*GetBaseDefinitionAndImplementationStructure(application, "controller"),
+				*GetBaseDefinitionAndImplementationStructure(application, "validation"),
 				{
 					IsDirectory: true,
 					Name:        "implementation",
 					Parent: &[]dto.NodeDto{
 						{
 							IsDirectory: true,
-							Name:        name.SnakeCasePlural,
+							Name:        application.Names.SnakeCasePlural,
 							Parent: &[]dto.NodeDto{
 								{
 									IsFile:   true,
 									Name:     util.GetFilename("implementation", "go"),
-									Template: template.GetGrpcServerImplementationTemplate(module, name),
+									Template: template.GetGrpcServerImplementationTemplate(application),
 								},
 							},
 						},
@@ -118,8 +129,13 @@ func GetGrpcStructure(module string, organization string, version string, name *
 		},
 		{
 			IsFile:   true,
-			Name:     "application.dockerfile",
-			Template: template.GetDockerTemplate(organization, version, true),
+			Name:     util.GetFilename("application", "dockerfile"),
+			Template: template.GetDockerTemplate(application, true),
+		},
+		{
+			IsFile:   true,
+			Name:     util.GetFilename("docker-compose-application", "yml"),
+			Template: template.GetDockerComposeTemplate(application, true),
 		},
 	}
 

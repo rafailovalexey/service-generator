@@ -54,19 +54,19 @@ func Recursion(path string, nodes *[]dto.NodeDto) error {
 	return nil
 }
 
-func Generate(wd string, application string, organization string, version string, database string, module string, name *dto.NameDto) error {
-	structure := GetCoreStructure(application, version, database, module, name)
+func Generate(wd string, application *dto.ApplicationDto) error {
+	structure := GetCoreStructure(application)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
-		*structure = append(*structure, *GetGrpcStructure(module, organization, version, name)...)
+		*structure = append(*structure, *GetGrpcStructure(application)...)
 	case "http":
-		*structure = append(*structure, *GetHttpStructure(module, organization, version, name)...)
+		*structure = append(*structure, *GetHttpStructure(application)...)
 	case "cron":
-		*structure = append(*structure, *GetCronStructure(module, organization, version, name)...)
+		*structure = append(*structure, *GetCronStructure(application)...)
 	}
 
-	switch database {
+	switch application.Database {
 	case "postgres":
 		*structure = append(*structure, *GetPostgresStructure()...)
 	case "mysql":
@@ -82,7 +82,7 @@ func Generate(wd string, application string, organization string, version string
 	return nil
 }
 
-func GenerateProvider(wd string, module string, name *dto.NameDto) error {
+func GenerateProvider(wd string, application *dto.ApplicationDto) error {
 	available := map[string]struct{}{
 		"handler":        {},
 		"implementation": {},
@@ -123,16 +123,16 @@ func GenerateProvider(wd string, module string, name *dto.NameDto) error {
 						{
 							IsFile:   true,
 							Name:     util.GetFilename("provider", "go"),
-							Template: template.GetProviderDefinitionTemplate(module, name, layers),
+							Template: template.GetProviderDefinitionTemplate(application, layers),
 						},
 						{
 							IsDirectory: true,
-							Name:        name.SnakeCasePlural,
+							Name:        application.Names.SnakeCasePlural,
 							Parent: &[]dto.NodeDto{
 								{
 									IsFile:   true,
 									Name:     util.GetFilename("provider", "go"),
-									Template: template.GetProviderImplementationTemplate(module, name, layers),
+									Template: template.GetProviderImplementationTemplate(application, layers),
 								},
 							},
 						},

@@ -6,19 +6,19 @@ import (
 	"github.com/rafailovalexey/service-generator/internal/util"
 )
 
-func GetDataTransferObjectStructure(layer string, name *dto.NameDto) *dto.NodeDto {
+func GetDataTransferObjectStructure(application *dto.ApplicationDto, layer string) *dto.NodeDto {
 	structure := &dto.NodeDto{
 		IsDirectory: true,
 		Name:        layer,
 		Parent: &[]dto.NodeDto{
 			{
 				IsDirectory: true,
-				Name:        name.SnakeCasePlural,
+				Name:        application.Names.SnakeCasePlural,
 				Parent: &[]dto.NodeDto{
 					{
 						IsFile:   true,
 						Name:     util.GetFilename(layer, "go"),
-						Template: template.GetDataTransferObjectTemplate(layer, name),
+						Template: template.GetDataTransferObjectTemplate(application, layer),
 					},
 				},
 			},

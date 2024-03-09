@@ -8,13 +8,13 @@ import (
 	"sort"
 )
 
-func GetApplicationTemplate(module string, application string, database string, name *dto.NameDto) []byte {
+func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	t := ""
 
-	switch application {
+	switch application.Type {
 	case "http":
 		t = "http_server"
 	case "grpc":
@@ -31,19 +31,20 @@ func GetApplicationTemplate(module string, application string, database string, 
 		"\"strconv\"",
 		"\"time\"",
 		"\"github.com/sirupsen/logrus\"",
-		fmt.Sprintf("\"%s/database/%s\"", module, database),
-		fmt.Sprintf("\"%s/config\"", module),
-		fmt.Sprintf("\"%s/cmd/%s\"", module, t),
-		fmt.Sprintf("\"%s/cmd/migration\"", module),
-		fmt.Sprintf("\"%s/internal/provider\"", module),
-		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", name.LowerCamelCaseSingular, module, name.SnakeCasePlural),
+		fmt.Sprintf("\"%s/database/%s\"", application.Module, application.Database),
+		fmt.Sprintf("\"%s/config\"", application.Module),
+		fmt.Sprintf("\"%s/cmd/%s\"", application.Module, t),
+		fmt.Sprintf("\"%s/internal/provider\"", application.Module),
+		fmt.Sprintf("%sProvider \"%s/internal/provider/%s\"", application.Names.LowerCamelCaseSingular, application.Module, application.Names.SnakeCasePlural),
 	}
 
-	switch application {
+	switch application.Type {
 	case "grpc":
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", module, t, "middleware"))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/migration\"", application.Module))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", application.Module, t, "middleware"))
 	case "http":
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", module, t, "middleware"))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/migration\"", application.Module))
+		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", application.Module, t, "middleware"))
 	}
 
 	sort.Strings(imports)
@@ -74,8 +75,14 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tInitializeDatabase(context.Context) error"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tInitializeMigration(context.Context) error"))
-	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\tInitializeMigration(context.Context) error"))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\tInitializeMigration(context.Context) error"))
+		data.WriteString(separator)
+	}
 	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tRun() error"))
@@ -94,7 +101,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(fmt.Sprintf("\tdatabase *sql.DB"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -138,8 +145,14 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeDatabase,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\ta.InitializeMigration,"))
-	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\t\ta.InitializeMigration,"))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\t\ta.InitializeMigration,"))
+		data.WriteString(separator)
+	}
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
@@ -171,7 +184,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeConfig(_ context.Context) error {"))
 	data.WriteString(separator)
 
-	switch database {
+	switch application.Database {
 	case "postgres":
 		data.WriteString(fmt.Sprintf("\tpostgresUsername := os.Getenv(\"POSTGRES_USERNAME\")"))
 		data.WriteString(separator)
@@ -536,7 +549,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(separator)
 	}
 
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("\tgrpcServerHostname := os.Getenv(\"GRPC_SERVER_HOSTNAME\")"))
 		data.WriteString(separator)
@@ -676,7 +689,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 	data.WriteString(fmt.Sprintf("\tif debugString == \"\" {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the debug value\")"))
+	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"specify the debug\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -688,7 +701,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing debug value: %s\", err)"))
+	data.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"error parsing debug\")"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -698,7 +711,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tDebug: debug,"))
 	data.WriteString(separator)
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("\t\tGrpcServer: s,"))
 		data.WriteString(separator)
@@ -706,7 +719,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(fmt.Sprintf("\t\tHttpServer: s,"))
 		data.WriteString(separator)
 	}
-	switch database {
+	switch application.Database {
 	case "postgres":
 		data.WriteString(fmt.Sprintf("\t\tDatabase: p,"))
 		data.WriteString(separator)
@@ -776,7 +789,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeDatabase(_ context.Context) error {"))
 	data.WriteString(separator)
 
-	switch database {
+	switch application.Database {
 	case "postgres":
 		data.WriteString(fmt.Sprintf("\tdatabase, err := postgres.NewPostgresDatabase(a.config.Database)"))
 		data.WriteString(separator)
@@ -810,27 +823,48 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\terr := migration.Run(a.database)"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tif err != nil {"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\treturn err"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn nil"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("}"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\terr := migration.Run(a.database)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\treturn nil"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("func (a *Application) InitializeMigration(_ context.Context) error {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\terr := migration.Run(a.database)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tif err != nil {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\treturn err"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\treturn nil"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeProvider(_ context.Context) error {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", name.LowerCamelCaseSingular, name.LowerCamelCaseSingular, name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -843,9 +877,9 @@ func GetApplicationTemplate(module string, application string, database string, 
 	data.WriteString(fmt.Sprintf("func (a *Application) Run() error {"))
 	data.WriteString(separator)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -868,7 +902,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -891,7 +925,7 @@ func GetApplicationTemplate(module string, application string, database string, 
 		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "cron":
-		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -936,14 +970,14 @@ func GetApplicationTemplate(module string, application string, database string, 
 	return data.Bytes()
 }
 
-func GetMainTemplate(module string) []byte {
+func GetMainTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
 	imports := []string{
 		"\"log\"",
 		"\"context\"",
-		fmt.Sprintf("\"%s/cmd/application\"", module),
+		fmt.Sprintf("\"%s/cmd/application\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -987,7 +1021,7 @@ func GetMainTemplate(module string) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tif err != nil {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tlog.Panicf(\"an application error occurred %v\\n\", err)"))
+	data.WriteString(fmt.Sprint("\t\tlog.Panicf(\"an application error occurred %v\", err)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
@@ -1137,11 +1171,11 @@ func GetDockerIgnoreTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetDockerTemplate(organization string, version string, port bool) []byte {
+func GetDockerTemplate(application *dto.ApplicationDto, port bool) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("FROM golang:%s-alpine", version))
+	data.WriteString(fmt.Sprintf("FROM golang:%s-alpine", application.Version))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("WORKDIR /usr/local/application"))
@@ -1159,15 +1193,15 @@ func GetDockerTemplate(organization string, version string, port bool) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("RUN chmod 600 ~/.ssh"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("RUN ssh-keyscan %s >> ~/.ssh/known_hosts", organization))
+	data.WriteString(fmt.Sprintf("RUN ssh-keyscan %s >> ~/.ssh/known_hosts", application.Organization))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("RUN git config --global url.\"git@%s:\".insteadOf \"https://%s/\"", organization, organization))
+	data.WriteString(fmt.Sprintf("RUN git config --global url.\"git@%s:\".insteadOf \"https://%s/\"", application.Organization, application.Organization))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("ENV PATH=\"$PATH:$GOROOT/bin:$GOPATH/bin\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("ENV GOPRIVATE=%s", organization))
+	data.WriteString(fmt.Sprintf("ENV GOPRIVATE=%s", application.Organization))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("COPY go.mod go.mod"))
@@ -1196,7 +1230,63 @@ func GetDockerTemplate(organization string, version string, port bool) []byte {
 	return data.Bytes()
 }
 
-func GetEnvironmentTemplate(application string, database string) []byte {
+func GetDockerComposeTemplate(application *dto.ApplicationDto, port bool) []byte {
+	data := bytes.Buffer{}
+	separator := util.GetSeparator()
+
+	data.WriteString(fmt.Sprintf("version: \"3.8\""))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("services:"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("  %s:", application.Directory))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    image: \"registry.%s:latest\"", application.Module))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    container_name: \"%s\"", application.Directory))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    hostname: \"%s\"", application.Directory))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    restart: \"always\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    networks:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("      - \"network\""))
+	data.WriteString(separator)
+	if port {
+		data.WriteString(fmt.Sprintf("    ports:"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("      - \"3000:3000\""))
+		data.WriteString(separator)
+	}
+	data.WriteString(fmt.Sprintf("    env_file:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("      - \".env\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    build:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("      context: \".\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("      dockerfile: \"application.dockerfile\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("      ssh: [\"default\"]"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("networks:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("  network:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("    driver: \"bridge\""))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -1207,7 +1297,7 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("# GRPC"))
 		data.WriteString(separator)
@@ -1236,7 +1326,7 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 		data.WriteString(separator)
 	}
 
-	switch database {
+	switch application.Database {
 	case "mysql":
 		data.WriteString(fmt.Sprintf("# MySql"))
 		data.WriteString(separator)
@@ -1263,9 +1353,9 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 		data.WriteString(fmt.Sprintf("# Postgres"))
 		data.WriteString(separator)
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("POSTGRES_USERNAME=mysql"))
+		data.WriteString(fmt.Sprintf("POSTGRES_USERNAME=postgres"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("POSTGRES_PASSWORD=mysql"))
+		data.WriteString(fmt.Sprintf("POSTGRES_PASSWORD=postgres"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("POSTGRES_HOSTNAME=localhost"))
 		data.WriteString(separator)
@@ -1286,21 +1376,21 @@ func GetEnvironmentTemplate(application string, database string) []byte {
 	return data.Bytes()
 }
 
-func GetGoTemplate(module string, version string) []byte {
+func GetGoTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("module %s", module))
+	data.WriteString(fmt.Sprintf("module %s", application.Module))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("go %s", version))
+	data.WriteString(fmt.Sprintf("go %s", application.Version))
 	data.WriteString(separator)
 
 	return data.Bytes()
 }
 
-func GetMakefileTemplate(module string, application string, name *dto.NameDto) []byte {
+func GetMakefileTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -1310,11 +1400,11 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 
 	data.WriteString(fmt.Sprintf("DOCKERFILE=\"application.dockerfile\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("CONTAINER_TAG=\"registry.%s:latest\"", module))
+	data.WriteString(fmt.Sprintf("CONTAINER_TAG=\"registry.%s:latest\"", application.Module))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("PROTO_SOURCE_DIRECTORY = api"))
 		data.WriteString(separator)
@@ -1324,7 +1414,7 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 
 		data.WriteString(fmt.Sprintf("PROTO_FILES = \\"))
 		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", name.SnakeCasePlural, name.SnakeCasePlural))
+		data.WriteString(fmt.Sprintf("\t%s_v1/%s.proto", application.Names.SnakeCasePlural, application.Names.SnakeCasePlural))
 		data.WriteString(separator)
 		data.WriteString(separator)
 	}
@@ -1337,7 +1427,7 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("# GRPC"))
 		data.WriteString(separator)
@@ -1372,7 +1462,7 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	switch application {
+	switch application.Type {
 	case "grpc":
 		data.WriteString(fmt.Sprintf("generate: grpc-generate mock-generate"))
 	default:
@@ -1465,14 +1555,23 @@ func GetMakefileTemplate(module string, application string, name *dto.NameDto) [
 	data.WriteString(fmt.Sprintf("\tdocker image push ${CONTAINER_TAG}"))
 	data.WriteString(separator)
 
+	data.WriteString(fmt.Sprintf("# Docker compose run"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("docker-compose-run:"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tdocker compose --file docker-compose-application.yml up --detach --build"))
+	data.WriteString(separator)
+
 	return data.Bytes()
 }
 
-func GetReadmeTemplate(module string) []byte {
+func GetReadmeTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("%s", module))
+	data.WriteString(fmt.Sprintf("%s", application))
 	data.WriteString(separator)
 
 	return data.Bytes()
