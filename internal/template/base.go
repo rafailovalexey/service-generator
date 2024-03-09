@@ -27,7 +27,13 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	separator := util.GetSeparator()
 
 	imports := []string{
+		"\"github.com/sirupsen/logrus\"",
+		fmt.Sprintf("\"%s/config\"", application.Module),
 		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", layer),
+	}
+
+	if layer == "repository" {
+		imports = append(imports, fmt.Sprintf("\"database/sql\""))
 	}
 
 	sort.Strings(imports)
@@ -48,7 +54,17 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	if layer == "repository" {
+		data.WriteString(fmt.Sprintf("\tdatabase *sql.DB"))
+		data.WriteString(separator)
+	}
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -56,9 +72,29 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() definition.%s%sInterface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("func New%s%s(", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
+	data.WriteString(separator)
+	if layer == "repository" {
+		data.WriteString(fmt.Sprintf("\tdatabase *sql.DB,"))
+		data.WriteString(separator)
+	}
+	data.WriteString(fmt.Sprintf(") definition.%s%sInterface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	if layer == "repository" {
+		data.WriteString(fmt.Sprintf("\t\tdatabase: database,"))
+		data.WriteString(separator)
+	}
+	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)

@@ -864,7 +864,15 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("func (a *Application) InitializeProvider(_ context.Context) error {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider()", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\ta.%sProvider = %sProvider.New%sProvider(", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\ta.database,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
