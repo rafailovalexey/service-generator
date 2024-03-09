@@ -41,9 +41,9 @@ func GetCronSchedulerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("type CronScheduler struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tlogger\t*logrus.Logger"))
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t%sService\tservice.%sServiceInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\t%sService service.%sServiceInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
