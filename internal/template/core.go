@@ -185,7 +185,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\terr = env.Parse(&c)"))
+	data.WriteString(fmt.Sprintf("\terr := env.Parse(&c)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -260,7 +260,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(separator)
 	}
 
-	data.WriteString(fmt.Sprintf("\ta.config = c"))
+	data.WriteString(fmt.Sprintf("\ta.config = &c"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
