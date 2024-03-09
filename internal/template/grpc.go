@@ -346,12 +346,12 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	imports := []string{
 		"\"fmt\"",
 		"\"net\"",
-		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
-		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
-		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
 		"\"google.golang.org/grpc\"",
 		"\"google.golang.org/grpc/reflection\"",
 		"\"github.com/sirupsen/logrus\"",
+		fmt.Sprintf("\"%s/cmd/grpc_server/interceptor\"", module),
+		fmt.Sprintf("\"%s/cmd/grpc_server/middleware\"", module),
+		fmt.Sprintf("\"%s/pkg/%s_v1\"", module, name.SnakeCasePlural),
 	}
 
 	sort.Strings(imports)
@@ -384,13 +384,61 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(config *GrpcServerConfig, logger *logrus.Logger, api %s_v1.%sV1Server) error {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("type GrpcServer struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", config.Hostname, config.Port)"))
+	data.WriteString(fmt.Sprintf("\tconfig\t*GrpcServerConfig"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger\t*logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tapi\twhatsapp_clients_v1.WhatsappClientsV1Server"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\tlogger.Infof(fmt.Sprintf(\"grpc server starts at address %s\", address))"))
+	data.WriteString(fmt.Sprintf("type GrpcServerInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tRun() error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ GrpcServerInterface = (*GrpcServer)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewGrpcServer("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *GrpcServerConfig,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tapi whatsapp_clients_v1.WhatsappClientsV1Server,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(") *GrpcServer {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &GrpcServer{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tapi: api,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (g *GrpcServer) Run() error {", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", g.config.Hostname, g.config.Port)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprint("\tg.logger.Infof(fmt.Sprintf(\"grpc server starts at address %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -412,9 +460,9 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.TracingInterceptor(),"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.LoggingInterceptor(logger),"))
+	data.WriteString(fmt.Sprintf("\t\t\tinterceptor.LoggingInterceptor(g.logger),"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tmiddleware.AuthenticationMiddleware(config.Authentication),"))
+	data.WriteString(fmt.Sprintf("\t\t\tmiddleware.AuthenticationMiddleware(g.config.Authentication),"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\t),"))
 	data.WriteString(separator)
@@ -426,11 +474,11 @@ func GetGrpcServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, api)", name.SnakeCasePlural, name.CamelCasePlural))
+	data.WriteString(fmt.Sprintf("\t%s_v1.Register%sV1Server(server, g.api)", name.SnakeCasePlural, name.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\tlogger.Infof(fmt.Sprintf(\"grpc server is running at %s\", address))"))
+	data.WriteString(fmt.Sprint("\tg.logger.Infof(fmt.Sprintf(\"grpc server is running at %s\", address))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 

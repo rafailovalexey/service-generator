@@ -261,8 +261,8 @@ func GetHttpAuthenticationMiddlewareTemplate(module string) []byte {
 	separator := util.GetSeparator()
 
 	imports := []string{
-		fmt.Sprintf("\"%s/util\"", module),
 		"\"net/http\"",
+		fmt.Sprintf("\"%s/util\"", module),
 	}
 
 	sort.Strings(imports)
@@ -478,11 +478,11 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	imports := []string{
 		"\"fmt\"",
 		"\"net/http\"",
+		"\"github.com/sirupsen/logrus\"",
 		fmt.Sprintf("\"%s/internal/handler\"", module),
 		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", module),
 		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", module),
 		fmt.Sprintf("\"%s/util\"", module),
-		"\"github.com/sirupsen/logrus\"",
 	}
 
 	sort.Strings(imports)
@@ -515,7 +515,55 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func Run(config *HttpServerConfig, logger *logrus.Logger, %sHandler handler.%sHandlerInterface) error {", name.LowerCamelCaseSingular, name.CamelCaseSingular))
+	data.WriteString(fmt.Sprintf("type HttpServer struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *HttpServerConfig"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twhatsappClientHandler handler.WhatsappClientHandlerInterface"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type HttpServerInterface interface {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tRun() error"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("var _ HttpServerInterface = (*HttpServer)(nil)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NewHttpServer("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *HttpServerConfig,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twhatsappClientHandler handler.WhatsappClientHandlerInterface,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(") *HttpServer {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &HttpServer{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\twhatsappClientHandler: whatsappClientHandler,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func (h *HttpServer) Run() error {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\trouter := http.NewServeMux()"))
 	data.WriteString(separator)
@@ -523,17 +571,17 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tinterceptor.NewLoggingInterceptor(logger).Apply,"))
+	data.WriteString(fmt.Sprintf("\t\tinterceptor.NewLoggingInterceptor(h.logger).Apply,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewCorsMiddleware().Apply,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewAuthenticationMiddleware(config.Authentication).Apply,"))
+	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewAuthenticationMiddleware(h.config.Authentication).Apply,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\troute := middlewares(http.HandlerFunc(%sHandler.Handle))", name.LowerCamelCaseSingular))
+	data.WriteString(fmt.Sprintf("\troute := middlewares(http.HandlerFunc(h.%sHandler.Handle))", name.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -543,11 +591,11 @@ func GetHttpServerTemplate(module string, name *dto.NameDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", config.Hostname, config.Port)"))
+	data.WriteString(fmt.Sprint("\taddress := fmt.Sprintf(\"%s:%s\", h.config.Hostname, h.config.Port)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\tlogger.Infof(\"http server starts at address %s\\n\", address)"))
+	data.WriteString(fmt.Sprint("\th.logger.Infof(\"http server starts at address %s\\n\", address)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
