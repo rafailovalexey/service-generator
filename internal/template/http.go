@@ -49,6 +49,8 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	separator := util.GetSeparator()
 
 	imports := []string{
+		"\"github.com/sirupsen/logrus\"",
+		fmt.Sprintf("\"%s/config\"", application.Module),
 		fmt.Sprintf("\"%s/util\"", application.Module),
 		fmt.Sprintf("\"net/http\""),
 		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", "handler"),
@@ -72,7 +74,13 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type %s%s struct {}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("type %s%s struct {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -80,9 +88,21 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler"), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("func New%s%s(", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(") *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconfig: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -295,7 +315,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 
 	data.WriteString(fmt.Sprintf("type AuthenticationMiddleware struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tconfig *HttpAuthenticationConfig"))
+	data.WriteString(fmt.Sprintf("\tconfig HttpAuthenticationConfig"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -305,7 +325,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func NewAuthenticationMiddleware(config *HttpAuthenticationConfig) *AuthenticationMiddleware {"))
+	data.WriteString(fmt.Sprintf("func NewAuthenticationMiddleware(config HttpAuthenticationConfig) *AuthenticationMiddleware {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn &AuthenticationMiddleware{"))
 	data.WriteString(separator)
@@ -517,7 +537,7 @@ func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("type HttpServer struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tconfig *HttpServerConfig"))
+	data.WriteString(fmt.Sprintf("\tconfig HttpServerConfig"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
@@ -541,7 +561,7 @@ func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("func NewHttpServer("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tconfig *HttpServerConfig,"))
+	data.WriteString(fmt.Sprintf("\tconfig HttpServerConfig,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)

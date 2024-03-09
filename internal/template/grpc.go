@@ -13,6 +13,8 @@ func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte
 	separator := util.GetSeparator()
 
 	imports := []string{
+		"\"github.com/sirupsen/logrus\"",
+		fmt.Sprintf("\"%s/config\"", application.Module),
 		fmt.Sprintf("\"%s/pkg/%s_v1\"", application.Module, application.Names.SnakeCasePlural),
 	}
 
@@ -36,15 +38,31 @@ func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte
 
 	data.WriteString(fmt.Sprintf("type %s%s struct {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("config *config.Config"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("logger *logrus.Logger"))
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func New%s%s() *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation"), application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(fmt.Sprintf("func New%s%s(", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &%s%s{}", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(fmt.Sprintf("config *config.Config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("logger *logrus.Logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(") *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\treturn &%s%s{", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("config: config,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("logger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -289,7 +307,7 @@ func GetGrpcAuthenticationMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(config *GrpcAuthenticationConfig) grpc.UnaryServerInterceptor {"))
+	data.WriteString(fmt.Sprintf("func AuthenticationMiddleware(config GrpcAuthenticationConfig) grpc.UnaryServerInterceptor {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn func(ctx context.Context, request any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {"))
 	data.WriteString(separator)
@@ -376,7 +394,7 @@ func GetGrpcServerTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tHostname string `env:\"GRPC_SERVER_HOSTNAME,required\"`"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tPort int `env:\"GRPC_SERVER_PORT,required\"`"))
+	data.WriteString(fmt.Sprintf("\tPort string `env:\"GRPC_SERVER_PORT,required\"`"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tAuthentication middleware.GrpcAuthenticationConfig"))
 	data.WriteString(separator)
@@ -386,7 +404,7 @@ func GetGrpcServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("type GrpcServer struct {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tconfig *GrpcServerConfig"))
+	data.WriteString(fmt.Sprintf("\tconfig GrpcServerConfig"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
@@ -410,7 +428,7 @@ func GetGrpcServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("func NewGrpcServer("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tconfig *GrpcServerConfig,"))
+	data.WriteString(fmt.Sprintf("\tconfig GrpcServerConfig,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)

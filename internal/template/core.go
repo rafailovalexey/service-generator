@@ -39,10 +39,8 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	switch application.Type {
 	case "grpc":
 		imports = append(imports, fmt.Sprintf("\"%s/cmd/migration\"", application.Module))
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", application.Module, t, "middleware"))
 	case "http":
 		imports = append(imports, fmt.Sprintf("\"%s/cmd/migration\"", application.Module))
-		imports = append(imports, fmt.Sprintf("\"%s/cmd/%s/%s\"", application.Module, t, "middleware"))
 	}
 
 	sort.Strings(imports)
@@ -95,9 +93,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
-	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tdatabase *sql.DB"))
-	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
@@ -211,7 +207,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 
 	switch application.Type {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServerConfig)"))
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServer)"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -223,7 +219,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServerConfig.Authentication)"))
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.GrpcServer.Authentication)"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -235,7 +231,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(separator)
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServerConfig)"))
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServer)"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -247,7 +243,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(separator)
 		data.WriteString(separator)
 
-		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServerConfig.Authentication)"))
+		data.WriteString(fmt.Sprintf("\terr = env.Parse(&c.HttpServer.Authentication)"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -796,10 +792,6 @@ func GetDockerComposeTemplate(application *dto.ApplicationDto, port bool) []byte
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("    restart: \"always\""))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("    networks:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("      - \"network\""))
-	data.WriteString(separator)
 	if port {
 		data.WriteString(fmt.Sprintf("    ports:"))
 		data.WriteString(separator)
@@ -817,14 +809,6 @@ func GetDockerComposeTemplate(application *dto.ApplicationDto, port bool) []byte
 	data.WriteString(fmt.Sprintf("      dockerfile: \"application.dockerfile\""))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("      ssh: [\"default\"]"))
-	data.WriteString(separator)
-	data.WriteString(separator)
-
-	data.WriteString(fmt.Sprintf("networks:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("  network:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("    driver: \"bridge\""))
 	data.WriteString(separator)
 
 	return data.Bytes()
@@ -1097,6 +1081,7 @@ func GetMakefileTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(fmt.Sprintf("docker-push:"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tdocker image push ${CONTAINER_TAG}"))
+	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("# Docker compose run"))
