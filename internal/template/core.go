@@ -81,6 +81,17 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	}
 	data.WriteString(fmt.Sprintf("\tInitializeProvider(context.Context) error"))
 	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\tInitializeGrpcServer(context.Context) error"))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\tInitializeHttpServer(context.Context) error"))
+		data.WriteString(separator)
+	case "cron":
+		data.WriteString(fmt.Sprintf("\tInitializeCronScheduler(context.Context) error"))
+		data.WriteString(separator)
+	}
 	data.WriteString(fmt.Sprintf("\tRun() error"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
@@ -97,6 +108,17 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%sProvider provider.%sProviderInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\tgrpcServer %s.GrpcServerInterface", t))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\thttpServer %s.HttpServerInterface", t))
+		data.WriteString(separator)
+	case "cron":
+		data.WriteString(fmt.Sprintf("\tcronScheduler %s.CronSchedulerInterface", t))
+		data.WriteString(separator)
+	}
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -149,6 +171,17 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	}
 	data.WriteString(fmt.Sprintf("\t\ta.InitializeProvider,"))
 	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("\t\ta.InitializeGrpcServer,"))
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("\t\ta.InitializeHttpServer,"))
+		data.WriteString(separator)
+	case "cron":
+		data.WriteString(fmt.Sprintf("\t\ta.InitializeCronScheduler,"))
+		data.WriteString(separator)
+	}
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -414,20 +447,97 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("func (a *Application) InitializeGrpcServer(_ context.Context) error {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\ts := %s.NewGrpcServer(", t))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\ta.config.GrpcServer,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\ta.logger,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\timplementation,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\ta.grpcServer = s"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("func (a *Application) InitializeHttpServer(_ context.Context) error {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\ts := %s.NewHttpServer(", t))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\ta.config.HttpServer,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\ta.logger,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\thandler,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\ta.httpServer = s"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "cron":
+		data.WriteString(fmt.Sprintf("func (a *Application) InitializeCronScheduler(_ context.Context) error {"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\tc := %s.NewCronScheduler(", t))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\ta.logger,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\tservice,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t)"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\ta.cronScheduler = c"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("\treturn nil"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("}"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
+
 	data.WriteString(fmt.Sprintf("func (a *Application) Run() error {"))
 	data.WriteString(separator)
 
 	switch application.Type {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("\timplementation := a.%sProvider.Get%sImplementation()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\tgrpc := %s.NewGrpcServer(a.config.GrpcServer, a.logger, implementation)", t))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\terr := grpc.Run()"))
+		data.WriteString(fmt.Sprintf("\terr := a.grpcServer.Run()"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -442,15 +552,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("\thandler := a.%sProvider.Get%sHandler()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\thttp := %s.NewHttpServer(a.config.HttpServer, a.logger, handler)", t))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\terr := http.Run()"))
+		data.WriteString(fmt.Sprintf("\terr := a.httpServer.Run()"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -465,30 +567,7 @@ func GetApplicationTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(fmt.Sprintf("\treturn nil"))
 		data.WriteString(separator)
 	case "cron":
-		data.WriteString(fmt.Sprintf("\tservice := a.%sProvider.Get%sService()", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\tcron := %s.NewCronScheduler(a.logger, service)", t))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\terr := cron.Run()"))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\tif err != nil {"))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t\treturn err"))
-		data.WriteString(separator)
-		data.WriteString(fmt.Sprintf("\t}"))
-		data.WriteString(separator)
-		data.WriteString(separator)
-
-		data.WriteString(fmt.Sprintf("\treturn nil"))
-		data.WriteString(separator)
-	default:
-		data.WriteString(fmt.Sprintf("\terr := %s.Run()", t))
+		data.WriteString(fmt.Sprintf("\terr := a.cronScheduler.Run()"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 
@@ -859,6 +938,7 @@ func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(fmt.Sprintf("# MySql"))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("MYSQL_HOSTNAME=localhost"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("MYSQL_PORT=3306"))
@@ -881,6 +961,7 @@ func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(fmt.Sprintf("# Postgres"))
 		data.WriteString(separator)
 		data.WriteString(separator)
+
 		data.WriteString(fmt.Sprintf("POSTGRES_HOSTNAME=localhost"))
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("POSTGRES_PORT=5432"))

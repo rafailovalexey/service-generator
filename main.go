@@ -9,21 +9,21 @@ import (
 func main() {
 	names := dto.NewNameDto(
 		"w",
-		"WhatsappClientCron",
-		"WhatsappClientsCron",
-		"whatsappClientCron",
-		"whatsappClientsCron",
-		"whatsapp_client_cron",
-		"whatsapp_clients_cron",
+		"WhatsappClientHttp",
+		"WhatsappClientsHttp",
+		"whatsappClientHttp",
+		"whatsappClientsHttp",
+		"whatsapp_client_http",
+		"whatsapp_clients_http",
 	)
 
 	application := dto.NewApplicationDto(
 		"1.20",
-		"cron",
+		"http",
 		"postgres",
 		"github.com",
 		"rafailovalexey",
-		"whatsapp-clients-cron",
+		"whatsapp-clients-http",
 		names,
 	)
 

@@ -59,7 +59,7 @@ func GetHttpStructure(application *dto.ApplicationDto) *[]dto.NodeDto {
 								{
 									IsFile:   true,
 									Name:     util.GetFilename("logging", "go"),
-									Template: template.GetHttpLoggingInterceptorTemplate(),
+									Template: template.GetHttpTracingInterceptorTemplate(),
 								},
 							},
 						},

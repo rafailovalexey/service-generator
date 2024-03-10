@@ -164,7 +164,7 @@ func GetHttpInterceptorTemplate() []byte {
 	return data.Bytes()
 }
 
-func GetHttpLoggingInterceptorTemplate() []byte {
+func GetHttpTracingInterceptorTemplate() []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
@@ -192,19 +192,19 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("type LoggingInterceptor struct {"))
+	data.WriteString(fmt.Sprintf("type TracingInterceptor struct {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("var _ InterceptorInterface = (*LoggingInterceptor)(nil)"))
+	data.WriteString(fmt.Sprintf("var _ InterceptorInterface = (*TracingInterceptor)(nil)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("func NewLoggingInterceptor(logger *logrus.Logger) *LoggingInterceptor {"))
+	data.WriteString(fmt.Sprintf("func NewTracingInterceptor(logger *logrus.Logger) *TracingInterceptor {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn &LoggingInterceptor{"))
+	data.WriteString(fmt.Sprintf("\treturn &TracingInterceptor{"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
 	data.WriteString(separator)
@@ -214,7 +214,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (l *LoggingInterceptor) Apply(next http.Handler) http.Handler {"))
+	data.WriteString(fmt.Sprintf("func (t *TracingInterceptor) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
@@ -230,7 +230,7 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprint("\t\tl.logger.Debugf(\"%s %s %s - %s %v\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
+	data.WriteString(fmt.Sprint("\t\tt.logger.Debugf(\"%s %s %s - %s %v\", request.Method, request.URL.Host, request.RemoteAddr, request.UserAgent(), duration)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
@@ -591,7 +591,7 @@ func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\tmiddlewares := middleware.ChainMiddleware("))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tinterceptor.NewLoggingInterceptor(h.logger).Apply,"))
+	data.WriteString(fmt.Sprintf("\t\tinterceptor.NewTracingInterceptor(h.logger).Apply,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tmiddleware.NewCorsMiddleware().Apply,"))
 	data.WriteString(separator)
