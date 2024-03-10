@@ -188,7 +188,7 @@ func GetProviderImplementationTemplate(application *dto.ApplicationDto, layers [
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("\t\t\tp.logger,"))
 			data.WriteString(separator)
-			data.WriteString(fmt.Sprintf("\t\t\tp.%sController,", application.Names.LowerCamelCaseSingular))
+			data.WriteString(fmt.Sprintf("\t\t\tp.Get%sController(),", application.Names.CamelCaseSingular))
 			data.WriteString(separator)
 			data.WriteString(fmt.Sprintf("\t\t)"))
 			data.WriteString(separator)
@@ -214,22 +214,22 @@ func GetProviderImplementationTemplate(application *dto.ApplicationDto, layers [
 			data.WriteString(separator)
 			switch l {
 			case "handler":
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sController,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sController(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
 			case "controller":
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sValidation,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sValidation(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sConverter,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sConverter(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sService,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sService(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
 			case "service":
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sRepository,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sRepository(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
 			case "repository":
 				data.WriteString(fmt.Sprintf("\t\t\tp.database,"))
 				data.WriteString(separator)
-				data.WriteString(fmt.Sprintf("\t\t\tp.%sConverter,", application.Names.LowerCamelCaseSingular))
+				data.WriteString(fmt.Sprintf("\t\t\tp.Get%sConverter(),", application.Names.CamelCaseSingular))
 				data.WriteString(separator)
 			}
 			data.WriteString(fmt.Sprintf("\t\t)"))
