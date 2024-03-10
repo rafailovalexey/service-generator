@@ -53,6 +53,7 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 		fmt.Sprintf("\"%s/config\"", application.Module),
 		fmt.Sprintf("\"%s/util\"", application.Module),
 		fmt.Sprintf("\"net/http\""),
+		fmt.Sprintf("\"%s/internal/controller\"", application.Module),
 		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", "handler"),
 	}
 
@@ -80,6 +81,8 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sController controller.%sControllerInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
 	data.WriteString(separator)
@@ -94,6 +97,8 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sController controller.%sControllerInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(") *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn &%s%s{", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
@@ -101,6 +106,8 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t%sController: %sController,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)

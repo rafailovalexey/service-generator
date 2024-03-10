@@ -32,7 +32,15 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", layer),
 	}
 
-	if layer == "repository" {
+	switch layer {
+	case "controller":
+		imports = append(imports, fmt.Sprintf("\"%s/internal/converter\"", application.Module))
+		imports = append(imports, fmt.Sprintf("\"%s/internal/validation\"", application.Module))
+		imports = append(imports, fmt.Sprintf("\"%s/internal/service\"", application.Module))
+	case "service":
+		imports = append(imports, fmt.Sprintf("\"%s/internal/repository\"", application.Module))
+	case "repository":
+		imports = append(imports, fmt.Sprintf("\"%s/internal/converter\"", application.Module))
 		imports = append(imports, fmt.Sprintf("\"database/sql\""))
 	}
 
@@ -60,8 +68,21 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
 	data.WriteString(separator)
-	if layer == "repository" {
+	switch layer {
+	case "controller":
+		data.WriteString(fmt.Sprintf("\t%sValidation validation.%sValidationInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sConverter converter.%sConverterInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sService service.%sServiceInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+	case "service":
+		data.WriteString(fmt.Sprintf("\t%sRepository repository.%sRepositoryInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+	case "repository":
 		data.WriteString(fmt.Sprintf("\tdatabase *sql.DB"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sConverter converter.%sConverterInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 		data.WriteString(separator)
 	}
 	data.WriteString(fmt.Sprintf("}"))
@@ -78,8 +99,21 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
 	data.WriteString(separator)
-	if layer == "repository" {
+	switch layer {
+	case "controller":
+		data.WriteString(fmt.Sprintf("\t%sValidation validation.%sValidationInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sConverter converter.%sConverterInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sService service.%sServiceInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+	case "service":
+		data.WriteString(fmt.Sprintf("\t%sRepository repository.%sRepositoryInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
+		data.WriteString(separator)
+	case "repository":
 		data.WriteString(fmt.Sprintf("\tdatabase *sql.DB,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t%sConverter converter.%sConverterInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 		data.WriteString(separator)
 	}
 	data.WriteString(fmt.Sprintf(") definition.%s%sInterface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter(layer)))
@@ -90,8 +124,21 @@ func GetBaseImplementationTemplate(application *dto.ApplicationDto, layer string
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
 	data.WriteString(separator)
-	if layer == "repository" {
+	switch layer {
+	case "controller":
+		data.WriteString(fmt.Sprintf("\t\t%sValidation: %sValidation,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\t%sConverter: %sConverter,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\t%sService: %sService,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
+		data.WriteString(separator)
+	case "service":
+		data.WriteString(fmt.Sprintf("\t\t%sRepository: %sRepository,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
+		data.WriteString(separator)
+	case "repository":
 		data.WriteString(fmt.Sprintf("\t\tdatabase: database,"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t\t%sConverter: %sConverter,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
 		data.WriteString(separator)
 	}
 	data.WriteString(fmt.Sprintf("\t}"))

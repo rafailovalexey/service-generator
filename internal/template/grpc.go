@@ -15,6 +15,7 @@ func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte
 	imports := []string{
 		"\"github.com/sirupsen/logrus\"",
 		fmt.Sprintf("\"%s/config\"", application.Module),
+		fmt.Sprintf("\"%s/internal/controller\"", application.Module),
 		fmt.Sprintf("\"%s/pkg/%s_v1\"", application.Module, application.Names.SnakeCasePlural),
 	}
 
@@ -38,9 +39,11 @@ func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte
 
 	data.WriteString(fmt.Sprintf("type %s%s struct {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("config *config.Config"))
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("logger *logrus.Logger"))
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sController controller.%sControllerInterface", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t%s_v1.Unimplemented%sV1Server", application.Names.SnakeCasePlural, application.Names.CamelCasePlural))
 	data.WriteString(separator)
@@ -50,17 +53,21 @@ func GetGrpcServerImplementationTemplate(application *dto.ApplicationDto) []byte
 
 	data.WriteString(fmt.Sprintf("func New%s%s(", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("config *config.Config,"))
+	data.WriteString(fmt.Sprintf("\tconfig *config.Config,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("logger *logrus.Logger,"))
+	data.WriteString(fmt.Sprintf("\tlogger *logrus.Logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t%sController controller.%sControllerInterface,", application.Names.LowerCamelCaseSingular, application.Names.CamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf(") *%s%s {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\treturn &%s%s{", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("implementation")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("config: config,"))
+	data.WriteString(fmt.Sprintf("\t\tconfig: config,"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("logger: logger,"))
+	data.WriteString(fmt.Sprintf("\t\tlogger: logger,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\t%sController: %sController,", application.Names.LowerCamelCaseSingular, application.Names.LowerCamelCaseSingular))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t}"))
 	data.WriteString(separator)
