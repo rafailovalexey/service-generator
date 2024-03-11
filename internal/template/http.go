@@ -8,6 +8,172 @@ import (
 	"sort"
 )
 
+func GetHttpResponseTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := util.GetSeparator()
+
+	imports := []string{
+		"\"net/http\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package response"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func BadRequest(writer http.ResponseWriter, _ *http.Request, message string) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.WriteHeader(http.StatusBadRequest)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Write(WrapError(message))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func Unauthorized(writer http.ResponseWriter, _ *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.WriteHeader(http.StatusUnauthorized)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Write(WrapError(ErrorUnauthorized))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func Forbidden(writer http.ResponseWriter, _ *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.WriteHeader(http.StatusForbidden)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Write(WrapError(ErrorForbidden))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func NotFound(writer http.ResponseWriter, _ *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.WriteHeader(http.StatusNotFound)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Write(WrapError(ErrorNotFound))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func MethodNotAllowed(writer http.ResponseWriter, _ *http.Request) {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Header().Set(\"Content-Type\", \"application/json\")"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.WriteHeader(http.StatusMethodNotAllowed)"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\twriter.Write(WrapError(ErrorMethodNotAllowed))"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
+func GetHttpResponseErrorTemplate() []byte {
+	data := bytes.Buffer{}
+	separator := util.GetSeparator()
+
+	imports := []string{
+		"\"encoding/json\"",
+	}
+
+	sort.Strings(imports)
+
+	data.WriteString(fmt.Sprintf("package response"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("import ("))
+	data.WriteString(separator)
+
+	for _, i := range imports {
+		data.WriteString(fmt.Sprintf("\t%s", i))
+		data.WriteString(separator)
+	}
+
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("const ("))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tErrorUnauthorized = \"unauthorized\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tErrorForbidden = \"forbidden\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tErrorNotFound = \"not found\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tErrorMethodNotAllowed = \"method not allowed\""))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf(")"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("type WrapperError struct {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tError string `json:\"error\"`"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("func WrapError(message string) []byte {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\tconvert := &WrapperError{"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\tError: message,"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tresult, err := json.Marshal(convert)"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\tif err != nil {"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t\treturn []byte(err.Error())"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("\t}"))
+	data.WriteString(separator)
+	data.WriteString(separator)
+
+	data.WriteString(fmt.Sprintf("\treturn result"))
+	data.WriteString(separator)
+	data.WriteString(fmt.Sprintf("}"))
+	data.WriteString(separator)
+
+	return data.Bytes()
+}
+
 func GetHttpHandlerDefinitionTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
@@ -36,7 +202,7 @@ func GetHttpHandlerDefinitionTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("type %s%sInterface interface {", application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\tHandle(response http.ResponseWriter, request *http.Request)"))
+	data.WriteString(fmt.Sprintf("\tHandle(writer http.ResponseWriter, request *http.Request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("}"))
 	data.WriteString(separator)
@@ -51,7 +217,7 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	imports := []string{
 		"\"github.com/sirupsen/logrus\"",
 		fmt.Sprintf("\"%s/config\"", application.Module),
-		fmt.Sprintf("\"%s/util\"", application.Module),
+		fmt.Sprintf("\"%s/response\"", application.Module),
 		fmt.Sprintf("\"net/http\""),
 		fmt.Sprintf("\"%s/internal/controller\"", application.Module),
 		fmt.Sprintf("definition \"%s/%s/%s\"", application.Module, "internal", "handler"),
@@ -115,13 +281,13 @@ func GetHttpHandlerImplementationTemplate(application *dto.ApplicationDto) []byt
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(response http.ResponseWriter, request *http.Request) {", application.Names.LowerCaseFirstLetter, application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
+	data.WriteString(fmt.Sprintf("func (%s *%s%s) Handle(writer http.ResponseWriter, request *http.Request) {", application.Names.LowerCaseFirstLetter, application.Names.CamelCaseSingular, util.GetWithUpperCaseFirstLetter("handler")))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tswitch request.Method {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\tdefault:"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tutil.ResponseMethodNotAllowed(response, request)"))
+	data.WriteString(fmt.Sprintf("\t\tresponse.MethodNotAllowed(writer, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -223,13 +389,13 @@ func GetHttpLoggingInterceptorTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("func (l *LoggingInterceptor) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tstart := time.Now()"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(writer, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -289,7 +455,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 
 	imports := []string{
 		"\"net/http\"",
-		fmt.Sprintf("\"%s/util\"", application.Module),
+		fmt.Sprintf("\"%s/response\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -346,7 +512,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 
 	data.WriteString(fmt.Sprintf("func (a *AuthenticationMiddleware) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t\tkey := request.Header.Get(a.config.Header)"))
 	data.WriteString(separator)
@@ -354,7 +520,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 
 	data.WriteString(fmt.Sprintf("\t\tif key != a.config.Token {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tutil.ResponseUnauthorized(response, request)"))
+	data.WriteString(fmt.Sprintf("\t\t\tresponse.Unauthorized(writer, request)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -364,7 +530,7 @@ func GetHttpAuthenticationMiddlewareTemplate(application *dto.ApplicationDto) []
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(writer, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
@@ -416,21 +582,21 @@ func GetHttpCorsMiddlewareTemplate() []byte {
 
 	data.WriteString(fmt.Sprintf("func (c *CorsMiddleware) Apply(next http.Handler) http.Handler {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {"))
+	data.WriteString(fmt.Sprintf("\treturn http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Origin\", \"*\")"))
+	data.WriteString(fmt.Sprintf("\t\twriter.Header().Add(\"Access-Control-Allow-Origin\", \"*\")"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Headers\", \"*\")"))
+	data.WriteString(fmt.Sprintf("\t\twriter.Header().Add(\"Access-Control-Allow-Headers\", \"*\")"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Methods\", \"*\")"))
+	data.WriteString(fmt.Sprintf("\t\twriter.Header().Add(\"Access-Control-Allow-Methods\", \"*\")"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\tresponse.Header().Add(\"Access-Control-Allow-Credentials\", \"true\")"))
+	data.WriteString(fmt.Sprintf("\t\twriter.Header().Add(\"Access-Control-Allow-Credentials\", \"true\")"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
 	data.WriteString(fmt.Sprintf("\t\tif request.Method == \"OPTIONS\" {"))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t\t\tresponse.WriteHeader(http.StatusOK)"))
+	data.WriteString(fmt.Sprintf("\t\t\twriter.WriteHeader(http.StatusOK)"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 
@@ -440,7 +606,7 @@ func GetHttpCorsMiddlewareTemplate() []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(response, request)"))
+	data.WriteString(fmt.Sprintf("\t\tnext.ServeHTTP(writer, request)"))
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("\t})"))
 	data.WriteString(separator)
@@ -509,7 +675,7 @@ func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 		fmt.Sprintf("\"%s/internal/handler\"", application.Module),
 		fmt.Sprintf("\"%s/cmd/http_server/interceptor\"", application.Module),
 		fmt.Sprintf("\"%s/cmd/http_server/middleware\"", application.Module),
-		fmt.Sprintf("\"%s/util\"", application.Module),
+		fmt.Sprintf("\"%s/response\"", application.Module),
 	}
 
 	sort.Strings(imports)
@@ -614,7 +780,7 @@ func GetHttpServerTemplate(application *dto.ApplicationDto) []byte {
 
 	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/v1/%s\", route)", application.Names.SnakeCasePlural))
 	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(util.ResponseNotFound)))"))
+	data.WriteString(fmt.Sprintf("\trouter.Handle(\"/\", middlewares(http.HandlerFunc(response.NotFound)))"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 

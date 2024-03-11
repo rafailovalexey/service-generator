@@ -121,17 +121,17 @@ func GetHttpStructure(application *dto.ApplicationDto) *[]dto.NodeDto {
 		},
 		{
 			IsDirectory: true,
-			Name:        "util",
+			Name:        "response",
 			Parent: &[]dto.NodeDto{
 				{
 					IsFile:   true,
-					Name:     util.GetFilename("converter_error", "go"),
-					Template: template.GetUtilConverterErrorTemplate(),
+					Name:     util.GetFilename("response", "go"),
+					Template: template.GetHttpResponseTemplate(),
 				},
 				{
 					IsFile:   true,
-					Name:     util.GetFilename("response", "go"),
-					Template: template.GetUtilResponseTemplate(),
+					Name:     util.GetFilename("error", "go"),
+					Template: template.GetHttpResponseErrorTemplate(),
 				},
 			},
 		},
