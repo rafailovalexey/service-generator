@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func Create(application *dto.ApplicationDto) error {
+func GenerateLayers(application *dto.ApplicationDto, layers []string) error {
 	wd, err := util.GetWorkDirectory()
 
 	if err != nil {
@@ -16,7 +16,7 @@ func Create(application *dto.ApplicationDto) error {
 
 	wd = filepath.Join(wd, application.Directory)
 
-	err = structure.Generate(wd, application)
+	err = structure.GenerateLayers(wd, application, layers)
 
 	if err != nil {
 		return err

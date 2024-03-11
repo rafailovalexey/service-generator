@@ -27,7 +27,25 @@ func main() {
 		names,
 	)
 
-	err := facade.Create(application)
+	layers := []string{
+		"implementation",
+		"handler",
+		"controller",
+		"validation",
+		"converter",
+		"service",
+		"repository",
+		"dto",
+		"model",
+	}
+
+	//err := facade.Generate(application)
+	//
+	//if err != nil {
+	//	log.Panicf("error %v", err)
+	//}
+
+	err := facade.GenerateLayers(application, layers)
 
 	if err != nil {
 		log.Panicf("error %v", err)

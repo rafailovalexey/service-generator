@@ -82,6 +82,91 @@ func Generate(wd string, application *dto.ApplicationDto) error {
 	return nil
 }
 
+func GenerateLayers(wd string, application *dto.ApplicationDto, layers []string) error {
+	structure := &[]dto.NodeDto{}
+
+	temporary := &dto.NodeDto{
+		IsDirectory: true,
+		Name:        "internal",
+		Parent:      &[]dto.NodeDto{},
+	}
+
+	for _, layer := range layers {
+		switch layer {
+		case "implementation":
+			i := &dto.NodeDto{
+				IsDirectory: true,
+				Name:        "implementation",
+				Parent: &[]dto.NodeDto{
+					{
+						IsDirectory: true,
+						Name:        application.Names.SnakeCasePlural,
+						Parent: &[]dto.NodeDto{
+							{
+								IsFile:   true,
+								Name:     util.GetFilename("implementation", "go"),
+								Template: template.GetGrpcServerImplementationTemplate(application),
+							},
+						},
+					},
+				},
+			}
+
+			*temporary.Parent = append(*temporary.Parent, *i)
+		case "handler":
+			h := &dto.NodeDto{
+				IsDirectory: true,
+				Name:        "handler",
+				Parent: &[]dto.NodeDto{
+					{
+						IsFile:   true,
+						Name:     util.GetFilename("handler", "go"),
+						Template: template.GetHttpHandlerDefinitionTemplate(application),
+					},
+					{
+						IsDirectory: true,
+						Name:        application.Names.SnakeCasePlural,
+						Parent: &[]dto.NodeDto{
+							{
+								IsFile:   true,
+								Name:     util.GetFilename("handler", "go"),
+								Template: template.GetHttpHandlerImplementationTemplate(application),
+							},
+						},
+					},
+				},
+			}
+
+			*temporary.Parent = append(*temporary.Parent, *h)
+		case "controller":
+			*temporary.Parent = append(*temporary.Parent, *GetBaseDefinitionAndImplementationStructure(application, "controller"))
+		case "validation":
+			*temporary.Parent = append(*temporary.Parent, *GetBaseDefinitionAndImplementationStructure(application, "validation"))
+		case "converter":
+			*temporary.Parent = append(*temporary.Parent, *GetBaseDefinitionAndImplementationStructure(application, "converter"))
+		case "service":
+			*temporary.Parent = append(*temporary.Parent, *GetBaseDefinitionAndImplementationStructure(application, "service"))
+		case "repository":
+			*temporary.Parent = append(*temporary.Parent, *GetBaseDefinitionAndImplementationStructure(application, "repository"))
+		case "dto":
+			*temporary.Parent = append(*temporary.Parent, *GetDataTransferObjectStructure(application, "dto"))
+		case "model":
+			*temporary.Parent = append(*temporary.Parent, *GetDataTransferObjectStructure(application, "model"))
+		}
+
+	}
+
+	*structure = append(*structure, *temporary)
+
+	err := Recursion(wd, structure)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GenerateProvider(wd string, application *dto.ApplicationDto) error {
 	available := map[string]struct{}{
 		"handler":        {},
