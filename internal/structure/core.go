@@ -56,6 +56,23 @@ func GetCoreStructure(application *dto.ApplicationDto) *[]dto.NodeDto {
 				*GetBaseDefinitionAndImplementationStructure(application, "repository"),
 				*GetDataTransferObjectStructure(application, "model"),
 				*GetDataTransferObjectStructure(application, "dto"),
+				{
+					IsDirectory: true,
+					Name:        "constant",
+					Parent: &[]dto.NodeDto{
+						{
+							IsDirectory: true,
+							Name:        application.Names.SnakeCasePlural,
+							Parent: &[]dto.NodeDto{
+								{
+									IsFile:   true,
+									Name:     util.GetFilename("constant", "go"),
+									Template: template.GetConstantTemplate(application),
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 		{

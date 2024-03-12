@@ -897,7 +897,7 @@ func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 	data := bytes.Buffer{}
 	separator := util.GetSeparator()
 
-	data.WriteString(fmt.Sprintf("# DEBUG"))
+	data.WriteString(fmt.Sprintf("# Debug"))
 	data.WriteString(separator)
 	data.WriteString(separator)
 	data.WriteString(fmt.Sprintf("DEBUG=true"))
@@ -906,7 +906,7 @@ func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 
 	switch application.Type {
 	case "grpc":
-		data.WriteString(fmt.Sprintf("# GRPC"))
+		data.WriteString(fmt.Sprintf("# Grpc"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("GRPC_SERVER_HOSTNAME=localhost"))
@@ -919,7 +919,7 @@ func GetEnvironmentTemplate(application *dto.ApplicationDto) []byte {
 		data.WriteString(separator)
 		data.WriteString(separator)
 	case "http":
-		data.WriteString(fmt.Sprintf("# HTTP"))
+		data.WriteString(fmt.Sprintf("# Http"))
 		data.WriteString(separator)
 		data.WriteString(separator)
 		data.WriteString(fmt.Sprintf("HTTP_SERVER_HOSTNAME=localhost"))
@@ -1081,19 +1081,36 @@ func GetMakefileTemplate(application *dto.ApplicationDto) []byte {
 	data.WriteString(separator)
 	data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("# Migration create"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+	switch application.Type {
+	case "grpc":
+		data.WriteString(fmt.Sprintf("# Migration create"))
+		data.WriteString(separator)
+		data.WriteString(separator)
 
-	data.WriteString(fmt.Sprintf("migration-create:"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@echo \"Migration create...\""))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@mkdir -p ${MIGRATION_DIRECTORY}"))
-	data.WriteString(separator)
-	data.WriteString(fmt.Sprintf("\t@goose -dir ${MIGRATION_DIRECTORY} create $(MIGRATION_NAME) sql"))
-	data.WriteString(separator)
-	data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("migration-create:"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@echo \"Migration create...\""))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@mkdir -p ${MIGRATION_DIRECTORY}"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@goose -dir ${MIGRATION_DIRECTORY} create $(MIGRATION_NAME) sql"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	case "http":
+		data.WriteString(fmt.Sprintf("# Migration create"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+
+		data.WriteString(fmt.Sprintf("migration-create:"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@echo \"Migration create...\""))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@mkdir -p ${MIGRATION_DIRECTORY}"))
+		data.WriteString(separator)
+		data.WriteString(fmt.Sprintf("\t@goose -dir ${MIGRATION_DIRECTORY} create $(MIGRATION_NAME) sql"))
+		data.WriteString(separator)
+		data.WriteString(separator)
+	}
 
 	data.WriteString(fmt.Sprintf("# Tidy"))
 	data.WriteString(separator)
